@@ -9,17 +9,17 @@
     "license": "MIT",
     "require": {
         "php": "^7.2.5",
-        "barryvdh/laravel-ide-helper": "^2.7.0",
         "fideloper/proxy": "^4.2",
+        "laravel/ui": "^2.4",
         "fruitcake/laravel-cors": "^2.0",
-        "fzaninotto/faker": "^1.9.1",
         "guzzlehttp/guzzle": "^6.3",
+        "fzaninotto/faker": "^1.9.1",
         "intervention/image": "^2.5",
         "ladamalina/lingua-stem-ru": "dev-master",
         "laravel-lang/lang": "~7.0",
         "laravel/framework": "^7.24",
         "laravel/tinker": "^2.0",
-        "laravel/ui": "^2.5"
+        "barryvdh/laravel-ide-helper": "^2.7.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.4",

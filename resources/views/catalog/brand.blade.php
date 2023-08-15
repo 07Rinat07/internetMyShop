@@ -1,14 +1,21 @@
-@extends('layout.site')
+@extends('layout.site', ['title' => $brand->name])
 
 @section('content')
-    <h1>Бренд: {{ $brand->name }}</h1>
-    <ul>
+    <h1>{{ $brand->name }}</h1>
+    <p>{{ $brand->content }}</p>
+    <div class="bg-info p-2 mb-4">
+        <!-- Фильтр для товаров бренда -->
+        <form method="get"
+              action="{{ route('catalog.brand', ['brand' => $brand->slug]) }}">
+            @include('catalog.part.filter')
+            <a href="{{ route('catalog.brand', ['brand' => $brand->slug]) }}"
+               class="btn btn-light">Сбросить</a>
+        </form>
+    </div>
+    <div class="row">
         @foreach ($products as $product)
-            <li>
-                <a href="{{ route('catalog.product', ['slug' => $product->slug]) }}">
-                    {{ $product->name }}
-                </a>
-            </li>
+            @include('catalog.part.product', ['product' => $product])
         @endforeach
-    </ul>
+    </div>
+    {{ $products->links() }}
 @endsection
