@@ -3,7 +3,9 @@
 @section('content')
     <h1>Каталог товаров</h1>
 
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque ducimus, eligendi exercitationem expedita, iure iusto laborum magnam qui quidem repellat similique tempora tempore ullam! Deserunt doloremque impedit quis repudiandae voluptas. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Atque ducimus, eligendi exercitationem expedita, iure iusto laborum magnam qui quidem repellat similique tempora tempore ullam! Deserunt doloremque impedit quis repudiandae voluptas.</p>
+    <p>Всем привет! В рамках учебного курса по фреймворку Ларавел и языка программирования PHP 7-8,2, я создал проект который реализован и развернут на хостинге для портфолио. Прошу с пониманием относится к представленному проекту некоммерского назначения.
+        Интернет магазин имеет простую логику и простой дизайн что часто является удобным для клиентов и просто посетителей!
+        Прошу внимания! Система оплаты на сайте неподключена так как проект является учебным и некоммерческим, весь остальной функционал работает в полной мере в режиме Демо!</p>
 
     <h2 class="mb-4">Разделы каталога</h2>
     <div class="row">
