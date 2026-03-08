@@ -46,20 +46,31 @@ const { data, error, pending, refresh } = await useAsyncData('catalog-index', ()
         >
           <div class="stack">
             <span class="pill">Category</span>
-            <h3>{{ category.name }}</h3>
+            <h3>
+              <NuxtLink :to="`/catalog/category/${category.slug}`">
+                {{ category.name }}
+              </NuxtLink>
+            </h3>
             <p>{{ category.content || 'No category description yet.' }}</p>
+          </div>
+
+          <div class="actions">
+            <NuxtLink class="button button--ghost" :to="`/catalog/category/${category.slug}`">
+              Browse products
+            </NuxtLink>
           </div>
 
           <div v-if="category.children.length" class="stack">
             <span class="eyebrow">Children</span>
             <div class="pill-row">
-              <span
+              <NuxtLink
                 v-for="child in category.children"
                 :key="child.id"
                 class="pill"
+                :to="`/catalog/category/${child.slug}`"
               >
                 {{ child.name }}
-              </span>
+              </NuxtLink>
             </div>
           </div>
         </article>

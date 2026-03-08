@@ -18,6 +18,9 @@ Separate `Nuxt 3` frontend for the API-first migration.
 
 - `/`
 - `/catalog`
+- `/catalog/category/:slug`
+- `/basket`
+- `/checkout`
 - `/login`
 - `/profile`
 - `/orders`

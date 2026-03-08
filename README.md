@@ -31,6 +31,9 @@ The first separate frontend shell now lives in `apps/web` and covers:
 
 - `GET /` home shell;
 - `GET /catalog` public catalog index;
+- `GET /catalog/category/{slug}` category product listing with add-to-basket;
+- `GET /basket` basket management over API cookies;
+- `GET /checkout` guest or authenticated checkout flow;
 - `GET /login` login and registration against Sanctum;
 - `GET /profile` authenticated profile management;
 - `GET /orders` authenticated order history and detail loading.

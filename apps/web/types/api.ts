@@ -7,6 +7,11 @@ export type PaginatedResponse<T> = ApiEnvelope<T[]> & {
   links: PaginationLinks
 }
 
+export type PaginatedEnvelope<T> = ApiEnvelope<T> & {
+  meta: PaginationMeta
+  links: PaginationLinks
+}
+
 export type PaginationMeta = {
   current_page: number
   last_page: number
@@ -66,9 +71,35 @@ export type Brand = {
   products_count?: number | null
 }
 
+export type ProductReference = {
+  id: number
+  name: string
+  slug: string
+}
+
+export type ProductListItem = {
+  id: number
+  name: string
+  slug: string
+  price: number
+  image: string | null
+  flags: {
+    new: boolean
+    hit: boolean
+    sale: boolean
+  }
+  brand: ProductReference | null
+  category: ProductReference | null
+}
+
 export type CatalogIndexPayload = {
   categories: CategoryTree[]
   brands: Brand[]
+}
+
+export type CategoryProductsPayload = {
+  category: CategoryTree
+  products: ProductListItem[]
 }
 
 export type Profile = {
@@ -117,4 +148,36 @@ export type OrderDetail = OrderSummary & {
   address: string
   comment: string | null
   items: OrderItem[]
+}
+
+export type BasketItem = {
+  product_id: number
+  name: string
+  slug: string
+  price: number
+  quantity: number
+  cost: number
+  image: string | null
+  flags: {
+    new: boolean
+    hit: boolean
+    sale: boolean
+  }
+  brand: ProductReference | null
+  category: ProductReference | null
+}
+
+export type Basket = {
+  id: number
+  positions: number
+  amount: number
+  items: BasketItem[]
+}
+
+export type CheckoutPayload = {
+  name: string
+  email: string
+  phone: string
+  address: string
+  comment: string
 }

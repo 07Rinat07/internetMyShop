@@ -1,8 +1,10 @@
 <script setup lang="ts">
 const auth = useAuth()
+const basket = useBasket()
 const navItems = [
   { to: '/', label: 'Home' },
   { to: '/catalog', label: 'Catalog' },
+  { to: '/basket', label: 'Basket' },
   { to: '/profile', label: 'Profile' },
   { to: '/orders', label: 'Orders' },
 ]
@@ -35,7 +37,12 @@ async function handleLogout() {
           :to="item.to"
           class="nav-link"
         >
-          {{ item.label }}
+          <template v-if="item.to === '/basket'">
+            {{ item.label }} <span v-if="basket.positions.value">({{ basket.positions.value }})</span>
+          </template>
+          <template v-else>
+            {{ item.label }}
+          </template>
         </NuxtLink>
 
         <template v-if="auth.loggedIn.value">
