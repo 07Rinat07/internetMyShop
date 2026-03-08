@@ -5,7 +5,8 @@ Legacy Laravel storefront that is being migrated to an API-first architecture.
 ## Current stack
 
 - legacy app runtime: Laravel 7.30 + PHP 7.4 for the current codebase;
-- migration target: Laravel API + separate Nuxt frontend;
+- backend target: Laravel API;
+- frontend target: separate Nuxt 3 app under `apps/web`;
 - API documentation: `docs/openapi.yaml`;
 - test runtime: PHPUnit feature tests with sqlite in memory.
 
@@ -15,9 +16,24 @@ Legacy Laravel storefront that is being migrated to an API-first architecture.
 2. Run `artisan migrate:fresh` against the local sqlite database from `.env`.
 3. Run tests with `C:\OSPanel\modules\PHP-7.4\php.exe artisan test`.
 
+## Frontend run
+
+1. Go to `apps/web`.
+2. Run `npm install`.
+3. Set `NUXT_PUBLIC_API_BASE=http://localhost/api/v1` if the API is exposed on a different host.
+4. Start dev mode with `npm run dev`.
+5. Verify production build with `npm run build`.
+
 ## API v1
 
 The current API-first migration stage adds catalog, basket, auth, profile and order endpoints.
+The first separate frontend shell now lives in `apps/web` and covers:
+
+- `GET /` home shell;
+- `GET /catalog` public catalog index;
+- `GET /login` login and registration against Sanctum;
+- `GET /profile` authenticated profile management;
+- `GET /orders` authenticated order history and detail loading.
 
 Auth is now based on `Laravel Sanctum` personal access tokens:
 
@@ -51,3 +67,4 @@ Auth is now based on `Laravel Sanctum` personal access tokens:
 
 - architecture notes: `docs/architecture.md`
 - OpenAPI spec: `docs/openapi.yaml`
+- frontend app notes: `apps/web`
