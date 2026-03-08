@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\ProductFilter;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\V1\Concerns\InteractsWithPagination;
 use App\Http\Resources\Api\V1\BrandResource;
 use App\Http\Resources\Api\V1\CategoryTreeResource;
 use App\Http\Resources\Api\V1\ProductDetailResource;
@@ -13,6 +14,8 @@ use App\Models\Category;
 use App\Models\Product;
 
 class CatalogController extends Controller {
+    use InteractsWithPagination;
+
     public function index() {
         return response()->json([
             'data' => [
@@ -61,23 +64,5 @@ class CatalogController extends Controller {
         return response()->json([
             'data' => (new ProductDetailResource($product->load(['brand', 'category'])))->resolve(),
         ]);
-    }
-
-    private function paginationMeta($paginator) {
-        return [
-            'current_page' => $paginator->currentPage(),
-            'last_page' => $paginator->lastPage(),
-            'per_page' => $paginator->perPage(),
-            'total' => $paginator->total(),
-        ];
-    }
-
-    private function paginationLinks($paginator) {
-        return [
-            'first' => $paginator->url(1),
-            'last' => $paginator->url($paginator->lastPage()),
-            'prev' => $paginator->previousPageUrl(),
-            'next' => $paginator->nextPageUrl(),
-        ];
     }
 }

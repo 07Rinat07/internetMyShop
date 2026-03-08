@@ -15,7 +15,7 @@ class OrderController extends Controller {
     }
 
     public function show(Order $order) {
-        if (auth()->user()->id !== $order->user_id) {
+        if ((int)$order->user_id !== (int)auth()->id()) {
             // можно просматривать только свои заказы
             abort(404);
         }

@@ -23,6 +23,28 @@ class Basket extends Model {
     }
 
     /**
+     * Устанавливает кол-во товара $id в корзине
+     */
+    public function setQuantity($id, $quantity) {
+        $quantity = (int)$quantity;
+
+        if ($quantity <= 0) {
+            $this->remove($id);
+            return;
+        }
+
+        $id = (int)$id;
+        if ($this->products->contains($id)) {
+            $this->products()->updateExistingPivot($id, ['quantity' => $quantity]);
+        } else {
+            $this->products()->attach($id, ['quantity' => $quantity]);
+        }
+
+        $this->unsetRelation('products');
+        $this->touch();
+    }
+
+    /**
      * Уменьшает кол-во товара $id в корзине на величину $count
      */
     public function decrease($id, $count = 1) {
@@ -54,6 +76,7 @@ class Basket extends Model {
         } elseif ($count > 0) { // иначе — добавляем в корзину
             $this->products()->attach($id, ['quantity' => $count]);
         }
+        $this->unsetRelation('products');
         // обновляем поле `updated_at` таблицы `baskets`
         $this->touch();
     }
@@ -64,6 +87,7 @@ class Basket extends Model {
     public function remove($id) {
         // удаляем товар из корзины (разрушаем связь)
         $this->products()->detach($id);
+        $this->unsetRelation('products');
         // обновляем поле `updated_at` таблицы `baskets`
         $this->touch();
     }
@@ -74,6 +98,7 @@ class Basket extends Model {
     public function clear() {
         // удаляем товар из корзины (разрушаем все связи)
         $this->products()->detach();
+        $this->unsetRelation('products');
         // обновляем поле `updated_at` таблицы `baskets`
         $this->touch();
     }

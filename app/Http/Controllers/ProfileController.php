@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProfileUpsertRequest;
 use App\Models\Profile;
-use Illuminate\Http\Request;
 
 class ProfileController extends Controller {
 
@@ -43,17 +43,8 @@ class ProfileController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'name' => 'required|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|max:255',
-            'address' => 'required|max:255',
-            'comment' => 'nullable|max:255',
-        ]);
-
-        $profile = Profile::create(array_merge($validated, [
+    public function store(ProfileUpsertRequest $request) {
+        $profile = Profile::create(array_merge($request->validated(), [
             'user_id' => auth()->id(),
         ]));
         return redirect()
@@ -68,7 +59,7 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function show(Profile $profile) {
-        if ($profile->user_id !== auth()->user()->id) {
+        if ((int)$profile->user_id !== (int)auth()->id()) {
             abort(404); // это чужой профиль
         }
         return view('user.profile.show', compact('profile'));
@@ -81,7 +72,7 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function edit(Profile $profile) {
-        if ($profile->user_id !== auth()->user()->id) {
+        if ((int)$profile->user_id !== (int)auth()->id()) {
             abort(404); // это чужой профиль
         }
         return view('user.profile.edit', compact('profile'));
@@ -94,21 +85,12 @@ class ProfileController extends Controller {
      * @param  \App\Models\Profile  $profile
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Profile $profile) {
-        if ($profile->user_id !== auth()->id()) {
+    public function update(ProfileUpsertRequest $request, Profile $profile) {
+        if ((int)$profile->user_id !== (int)auth()->id()) {
             abort(404); // это чужой профиль
         }
 
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'name' => 'required|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|max:255',
-            'address' => 'required|max:255',
-            'comment' => 'nullable|max:255',
-        ]);
-
-        $profile->update($validated);
+        $profile->update($request->validated());
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
             ->with('success', 'Профиль был успешно отредактирован');
@@ -121,7 +103,7 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy(Profile $profile) {
-        if ($profile->user_id !== auth()->user()->id) {
+        if ((int)$profile->user_id !== (int)auth()->id()) {
             abort(404); // это чужой профиль
         }
         $profile->delete();

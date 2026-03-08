@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Orders\CreateOrderFromBasket;
+use App\Http\Requests\CheckoutOrderRequest;
 use App\Models\Basket;
-use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class BasketController extends Controller {
 
     private $basket;
+    private $createOrderFromBasket;
+
+    public function __construct(CreateOrderFromBasket $createOrderFromBasket) {
+        $this->createOrderFromBasket = $createOrderFromBasket;
+    }
 
     private function basket() {
         if ($this->basket === null) {
@@ -78,15 +83,7 @@ class BasketController extends Controller {
     /**
      * Сохранение заказа в БД
      */
-    public function saveOrder(Request $request) {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|max:255',
-            'address' => 'required|max:255',
-            'comment' => 'nullable|max:255',
-        ]);
-
+    public function saveOrder(CheckoutOrderRequest $request) {
         $basket = $this->basket();
         if ($basket->products->isEmpty()) {
             return redirect()
@@ -94,25 +91,7 @@ class BasketController extends Controller {
                 ->withErrors('Нельзя оформить пустой заказ');
         }
 
-        $order = DB::transaction(function () use ($basket, $validated) {
-            $order = Order::create(array_merge($validated, [
-                'amount' => $basket->getAmount(),
-                'status' => 0,
-                'user_id' => auth()->id(),
-            ]));
-
-            foreach ($basket->products as $product) {
-                $order->items()->create([
-                    'product_id' => $product->id,
-                    'name' => $product->name,
-                    'price' => $product->price,
-                    'quantity' => $product->pivot->quantity,
-                    'cost' => $product->price * $product->pivot->quantity,
-                ]);
-            }
-
-            return $order;
-        });
+        $order = $this->createOrderFromBasket->execute($basket, $request->validated(), auth()->id());
 
         $basket->clear();
 

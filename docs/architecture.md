@@ -2,10 +2,10 @@
 
 ## Current stage
 
-This repository is in the first stage of an API-first refactor:
+This repository is in the second stage of an API-first refactor:
 
 - legacy Blade storefront remains available;
-- `api/v1` is introduced for catalog read endpoints;
+- `api/v1` now covers catalog, basket, checkout, profiles and order history;
 - critical ownership and mass-assignment bugs are fixed before deeper migration;
 - local runtime is pinned to PHP 7.4 for the legacy app while the codebase is prepared for a later Laravel 12 migration.
 
@@ -18,8 +18,8 @@ This repository is in the first stage of an API-first refactor:
 
 ## Next refactor steps
 
-1. Extract basket and checkout into API endpoints.
-2. Add authentication API and token/session strategy.
-3. Move profile and order history to API resources.
-4. Introduce frontend app that consumes `api/v1`.
+1. Replace the temporary stateful API auth with Sanctum-based API authentication.
+2. Introduce a separate Nuxt 3 frontend app that consumes `api/v1`.
+3. Expand API coverage to admin, search and CMS/page content flows.
+4. Add OpenAPI generation directly from PHP attributes during the Laravel 12 upgrade.
 5. Upgrade framework and dependencies major by major until Laravel 12.
