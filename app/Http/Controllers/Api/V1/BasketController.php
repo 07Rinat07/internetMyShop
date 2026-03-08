@@ -70,7 +70,11 @@ class BasketController extends Controller {
             ], 422);
         }
 
-        $order = $this->createOrderFromBasket->execute($basket, $request->validated(), auth()->id());
+        $order = $this->createOrderFromBasket->execute(
+            $basket,
+            $request->validated(),
+            optional(auth('sanctum')->user())->id ?: auth()->id()
+        );
         $basket->clear();
 
         return response()->json([

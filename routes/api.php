@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,6 +14,17 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
+    Route::post('auth/register', 'Api\V1\AuthController@register')->name('auth.register');
+    Route::post('auth/login', 'Api\V1\AuthController@login')->name('auth.login');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('auth/me', 'Api\V1\AuthController@me')->name('auth.me');
+        Route::post('auth/logout', 'Api\V1\AuthController@logout')->name('auth.logout');
+
+        Route::apiResource('profiles', 'Api\V1\ProfileController')->except(['create', 'edit']);
+        Route::get('orders', 'Api\V1\OrderController@index')->name('orders.index');
+        Route::get('orders/{order}', 'Api\V1\OrderController@show')->name('orders.show');
+    });
+
     Route::get('catalog', 'Api\V1\CatalogController@index')->name('catalog.index');
     Route::get('categories/{category:slug}', 'Api\V1\CatalogController@category')->name('categories.show');
     Route::get('brands/{brand:slug}', 'Api\V1\CatalogController@brand')->name('brands.show');
@@ -27,15 +37,5 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('basket/items/{product}', 'Api\V1\BasketController@destroyItem')->name('basket.items.destroy');
         Route::delete('basket', 'Api\V1\BasketController@clear')->name('basket.clear');
         Route::post('basket/checkout', 'Api\V1\BasketController@checkout')->name('basket.checkout');
-
-        Route::middleware('auth')->group(function () {
-            Route::apiResource('profiles', 'Api\V1\ProfileController')->except(['create', 'edit']);
-            Route::get('orders', 'Api\V1\OrderController@index')->name('orders.index');
-            Route::get('orders/{order}', 'Api\V1\OrderController@show')->name('orders.show');
-        });
     });
-});
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
 });

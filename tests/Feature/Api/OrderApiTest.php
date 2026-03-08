@@ -10,15 +10,22 @@ use Tests\TestCase;
 class OrderApiTest extends TestCase {
     use RefreshDatabase;
 
+    public function test_unauthenticated_user_cannot_access_orders() {
+        $response = $this->getJson('/api/v1/orders');
+
+        $response->assertUnauthorized();
+    }
+
     public function test_index_returns_only_authenticated_users_orders() {
         $user = factory(User::class)->create();
+        $token = $user->createToken('orders-index')->plainTextToken;
         $otherUser = factory(User::class)->create();
 
         $ownOrder = $this->createOrderForUser($user, 'own@example.com');
         $this->createOrderForUser($otherUser, 'foreign@example.com');
 
         $response = $this
-            ->actingAs($user)
+            ->withToken($token)
             ->getJson('/api/v1/orders');
 
         $response->assertOk()
@@ -29,13 +36,14 @@ class OrderApiTest extends TestCase {
 
     public function test_show_returns_only_owned_order_details() {
         $user = factory(User::class)->create();
+        $token = $user->createToken('orders-show')->plainTextToken;
         $otherUser = factory(User::class)->create();
 
         $ownOrder = $this->createOrderForUser($user, 'owned@example.com');
         $foreignOrder = $this->createOrderForUser($otherUser, 'hidden@example.com');
 
         $showResponse = $this
-            ->actingAs($user)
+            ->withToken($token)
             ->getJson('/api/v1/orders/'.$ownOrder->id);
 
         $showResponse->assertOk()
@@ -43,7 +51,7 @@ class OrderApiTest extends TestCase {
             ->assertJsonPath('data.items.0.quantity', 1);
 
         $foreignResponse = $this
-            ->actingAs($user)
+            ->withToken($token)
             ->getJson('/api/v1/orders/'.$foreignOrder->id);
 
         $foreignResponse->assertNotFound();

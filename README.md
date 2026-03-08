@@ -4,7 +4,7 @@ Legacy Laravel storefront that is being migrated to an API-first architecture.
 
 ## Current stack
 
-- legacy app runtime: Laravel 7.29 + PHP 7.4 for the current codebase;
+- legacy app runtime: Laravel 7.30 + PHP 7.4 for the current codebase;
 - migration target: Laravel API + separate Nuxt frontend;
 - API documentation: `docs/openapi.yaml`;
 - test runtime: PHPUnit feature tests with sqlite in memory.
@@ -17,7 +17,14 @@ Legacy Laravel storefront that is being migrated to an API-first architecture.
 
 ## API v1
 
-The current API-first migration stage adds catalog, basket, profile and order endpoints.
+The current API-first migration stage adds catalog, basket, auth, profile and order endpoints.
+
+Auth is now based on `Laravel Sanctum` personal access tokens:
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/auth/logout`
 
 - `GET /api/v1/catalog`
 - `GET /api/v1/categories/{category}`
@@ -37,7 +44,8 @@ The current API-first migration stage adds catalog, basket, profile and order en
 - `GET /api/v1/orders`
 - `GET /api/v1/orders/{order}`
 
-`profiles` and `orders` currently use the transitional cookie/session API middleware. This is an intermediate step before introducing Sanctum.
+`profiles` and `orders` now require `Authorization: Bearer <token>`.
+`basket` remains guest-friendly and still uses the transitional cookie-based basket contract.
 
 ## Documentation
 

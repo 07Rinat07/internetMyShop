@@ -1,19 +1,88 @@
 openapi: 3.1.1
 info:
   title: internetMyShop API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     Transitional API-first contract for the legacy store.
-    Catalog endpoints are stateless. Basket, profiles and orders currently use
-    cookie/session-based API access through the temporary `api_stateful` middleware.
+    Catalog endpoints are public. Authentication for external frontend clients
+    is handled via Laravel Sanctum bearer tokens. Basket endpoints remain
+    guest-friendly and use the legacy cookie-based basket identifier.
 servers:
   - url: http://localhost/api/v1
 tags:
+  - name: Auth
   - name: Catalog
   - name: Basket
   - name: Profiles
   - name: Orders
 paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register API user and issue Sanctum token
+      operationId: registerApiUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registered user with token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and issue Sanctum token
+      operationId: loginApiUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated user with token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Invalid credentials
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current Sanctum-authenticated user
+      operationId: getAuthenticatedUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authenticated user payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: Unauthenticated
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke current Sanctum token
+      operationId: logoutApiUser
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out
   /catalog:
     get:
       tags: [Catalog]
@@ -205,6 +274,9 @@ paths:
       tags: [Basket]
       summary: Create order from current basket
       operationId: checkoutBasket
+      security:
+        - bearerAuth: []
+        - {}
       requestBody:
         required: true
         content:
@@ -229,7 +301,7 @@ paths:
       summary: List current user profiles
       operationId: getProfiles
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       responses:
         '200':
           description: Profiles payload
@@ -249,7 +321,7 @@ paths:
       summary: Create profile for current user
       operationId: createProfile
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -272,7 +344,7 @@ paths:
       summary: Get profile owned by current user
       operationId: getProfile
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       parameters:
         - in: path
           name: profile
@@ -296,7 +368,7 @@ paths:
       summary: Update profile owned by current user
       operationId: updateProfile
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       parameters:
         - in: path
           name: profile
@@ -324,7 +396,7 @@ paths:
       summary: Delete profile owned by current user
       operationId: deleteProfile
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       parameters:
         - in: path
           name: profile
@@ -340,7 +412,7 @@ paths:
       summary: List current user orders
       operationId: getOrders
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       responses:
         '200':
           description: Orders payload
@@ -365,7 +437,7 @@ paths:
       summary: Get order owned by current user
       operationId: getOrder
       security:
-        - sessionCookie: []
+        - bearerAuth: []
       parameters:
         - in: path
           name: order
@@ -386,10 +458,10 @@ paths:
           description: Not found
 components:
   securitySchemes:
-    sessionCookie:
-      type: apiKey
-      in: cookie
-      name: internetmyshop_session
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
   parameters:
     PriceFilter:
       in: query
@@ -416,6 +488,38 @@ components:
         type: string
         enum: [yes]
   schemas:
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    AuthResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            token_type:
+              type: string
+              example: Bearer
+            access_token:
+              type: string
+            user:
+              $ref: '#/components/schemas/AuthUser'
     Category:
       type: object
       properties:
@@ -742,3 +846,24 @@ components:
         comment:
           type: string
           nullable: true
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        device_name:
+          type: string
+          nullable: true
+    RegisterRequest:
+      allOf:
+        - $ref: '#/components/schemas/LoginRequest'
+        - type: object
+          required: [name, password_confirmation]
+          properties:
+            name:
+              type: string
+            password_confirmation:
+              type: string

@@ -10,8 +10,15 @@ use Tests\TestCase;
 class ProfileApiTest extends TestCase {
     use RefreshDatabase;
 
+    public function test_unauthenticated_user_cannot_access_profiles() {
+        $response = $this->getJson('/api/v1/profiles');
+
+        $response->assertUnauthorized();
+    }
+
     public function test_index_returns_only_authenticated_users_profiles() {
         $user = factory(User::class)->create();
+        $token = $user->createToken('profiles-index')->plainTextToken;
         $otherUser = factory(User::class)->create();
 
         Profile::create([
@@ -34,7 +41,7 @@ class ProfileApiTest extends TestCase {
         ]);
 
         $response = $this
-            ->actingAs($user)
+            ->withToken($token)
             ->getJson('/api/v1/profiles');
 
         $response->assertOk()
@@ -44,10 +51,11 @@ class ProfileApiTest extends TestCase {
 
     public function test_store_ignores_client_side_user_id() {
         $user = factory(User::class)->create();
+        $token = $user->createToken('profiles-store')->plainTextToken;
         $otherUser = factory(User::class)->create();
 
         $response = $this
-            ->actingAs($user)
+            ->withToken($token)
             ->postJson('/api/v1/profiles', [
                 'user_id' => $otherUser->id,
                 'title' => 'API profile',
@@ -66,6 +74,7 @@ class ProfileApiTest extends TestCase {
 
     public function test_foreign_profile_is_not_accessible() {
         $user = factory(User::class)->create();
+        $token = $user->createToken('profiles-foreign')->plainTextToken;
         $otherUser = factory(User::class)->create();
         $profile = Profile::create([
             'user_id' => $otherUser->id,
@@ -78,7 +87,7 @@ class ProfileApiTest extends TestCase {
         ]);
 
         $response = $this
-            ->actingAs($user)
+            ->withToken($token)
             ->getJson('/api/v1/profiles/'.$profile->id);
 
         $response->assertNotFound();

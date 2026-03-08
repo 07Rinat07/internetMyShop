@@ -68,13 +68,14 @@ class BasketApiTest extends TestCase {
 
     public function test_checkout_endpoint_creates_order_and_clears_basket() {
         $user = factory(User::class)->create();
+        $token = $user->createToken('basket-api-test')->plainTextToken;
         $product = $this->createProduct('basket-checkout-product', 1500);
         $basket = Basket::create();
         $basket->products()->attach($product->id, ['quantity' => 2]);
 
         $response = $this
-            ->actingAs($user)
             ->withCredentials()
+            ->withToken($token)
             ->disableCookieEncryption()
             ->withUnencryptedCookie('basket_id', (string)$basket->id)
             ->postJson('/api/v1/basket/checkout', [
