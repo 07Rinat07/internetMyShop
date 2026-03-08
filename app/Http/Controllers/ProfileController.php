@@ -44,17 +44,18 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-        // проверяем данные формы профиля
-        $this->validate($request, [
-            'user_id' => 'in:' . auth()->user()->id,
+        $validated = $request->validate([
             'title' => 'required|max:255',
             'name' => 'required|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|max:255',
             'address' => 'required|max:255',
+            'comment' => 'nullable|max:255',
         ]);
-        // валидация пройдена, создаем профиль
-        $profile = Profile::create($request->all());
+
+        $profile = Profile::create(array_merge($validated, [
+            'user_id' => auth()->id(),
+        ]));
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
             ->with('success', 'Новый профиль успешно создан');
@@ -94,17 +95,20 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Profile $profile) {
-        // проверяем данные формы профиля
-        $this->validate($request, [
-            'user_id' => 'in:' . auth()->user()->id,
+        if ($profile->user_id !== auth()->id()) {
+            abort(404); // это чужой профиль
+        }
+
+        $validated = $request->validate([
             'title' => 'required|max:255',
             'name' => 'required|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|max:255',
             'address' => 'required|max:255',
+            'comment' => 'nullable|max:255',
         ]);
-        // валидация пройдена, обновляем профиль
-        $profile->update($request->all());
+
+        $profile->update($validated);
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
             ->with('success', 'Профиль был успешно отредактирован');

@@ -95,7 +95,7 @@ class BrandController extends Controller {
         if ($brand->products->count()) {
             return back()->withErrors('Нельзя удалить бренд, у которого есть товары');
         }
-        $this->imageSaver->remove($brand, 'brend');
+        $this->imageSaver->remove($brand, 'brand');
         $brand->delete();
         return redirect()
             ->route('admin.brand.index')

@@ -5,21 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\Basket;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BasketController extends Controller {
 
     private $basket;
 
-    public function __construct() {
-        $this->basket = Basket::getBasket();
+    private function basket() {
+        if ($this->basket === null) {
+            $this->basket = Basket::getBasket();
+        }
+
+        return $this->basket;
     }
 
     /**
      * Показывает корзину покупателя
      */
     public function index() {
-        $products = $this->basket->products;
-        $amount = $this->basket->getAmount();
+        $basket = $this->basket();
+        $products = $basket->products;
+        $amount = $basket->getAmount();
         return view('basket.index', compact('products', 'amount'));
     }
 
@@ -73,32 +79,42 @@ class BasketController extends Controller {
      * Сохранение заказа в БД
      */
     public function saveOrder(Request $request) {
-        // проверяем данные формы оформления
-        $this->validate($request, [
+        $validated = $request->validate([
             'name' => 'required|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|max:255',
             'address' => 'required|max:255',
+            'comment' => 'nullable|max:255',
         ]);
 
-        // валидация пройдена, сохраняем заказ
-        $user_id = auth()->check() ? auth()->user()->id : null;
-        $order = Order::create(
-            $request->all() + ['amount' => $this->basket->getAmount(), 'user_id' => $user_id]
-        );
-
-        foreach ($this->basket->products as $product) {
-            $order->items()->create([
-                'product_id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'quantity' => $product->pivot->quantity,
-                'cost' => $product->price * $product->pivot->quantity,
-            ]);
+        $basket = $this->basket();
+        if ($basket->products->isEmpty()) {
+            return redirect()
+                ->route('basket.index')
+                ->withErrors('Нельзя оформить пустой заказ');
         }
 
-        // очищаем корзину
-        $this->basket->clear();
+        $order = DB::transaction(function () use ($basket, $validated) {
+            $order = Order::create(array_merge($validated, [
+                'amount' => $basket->getAmount(),
+                'status' => 0,
+                'user_id' => auth()->id(),
+            ]));
+
+            foreach ($basket->products as $product) {
+                $order->items()->create([
+                    'product_id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'quantity' => $product->pivot->quantity,
+                    'cost' => $product->price * $product->pivot->quantity,
+                ]);
+            }
+
+            return $order;
+        });
+
+        $basket->clear();
 
         return redirect()
             ->route('basket.success')
@@ -124,8 +140,9 @@ class BasketController extends Controller {
      * Добавляет товар с идентификатором $id в корзину
      */
     public function add(Request $request, $id) {
-        $quantity = $request->input('quantity') ?? 1;
-        $this->basket->increase($id, $quantity);
+        $quantity = max(1, (int)$request->input('quantity', 1));
+        $basket = $this->basket();
+        $basket->increase($id, $quantity);
         if ( ! $request->ajax()) {
             // выполняем редирект обратно на ту страницу,
             // где была нажата кнопка «В корзину»
@@ -134,7 +151,7 @@ class BasketController extends Controller {
         // в случае ajax-запроса возвращаем html-код корзины в правом
         // верхнем углу, чтобы заменить исходный html-код, потому что
         // теперь количество позиций будет другим
-        $positions = $this->basket->products()->count();
+        $positions = $basket->products()->count();
         return view('basket.part.basket', compact('positions'));
     }
 
@@ -142,7 +159,7 @@ class BasketController extends Controller {
      * Увеличивает кол-во товара $id в корзине на единицу
      */
     public function plus($id) {
-        $this->basket->increase($id);
+        $this->basket()->increase($id);
         // выполняем редирект обратно на страницу корзины
         return redirect()->route('basket.index');
     }
@@ -151,7 +168,7 @@ class BasketController extends Controller {
      * Уменьшает кол-во товара $id в корзине на единицу
      */
     public function minus($id) {
-        $this->basket->decrease($id);
+        $this->basket()->decrease($id);
         // выполняем редирект обратно на страницу корзины
         return redirect()->route('basket.index');
     }
@@ -160,7 +177,7 @@ class BasketController extends Controller {
      * Удаляет товар с идентификаторм $id из корзины
      */
     public function remove($id) {
-        $this->basket->remove($id);
+        $this->basket()->remove($id);
         // выполняем редирект обратно на страницу корзины
         return redirect()->route('basket.index');
     }
@@ -169,7 +186,7 @@ class BasketController extends Controller {
      * Полностью очищает содержимое корзины покупателя
      */
     public function clear() {
-        $this->basket->delete();
+        $this->basket()->clear();
         // выполняем редирект обратно на страницу корзины
         return redirect()->route('basket.index');
     }

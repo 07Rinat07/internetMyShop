@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::prefix('v1')->name('api.v1.')->group(function () {
+    Route::get('catalog', 'Api\V1\CatalogController@index')->name('catalog.index');
+    Route::get('categories/{category:slug}', 'Api\V1\CatalogController@category')->name('categories.show');
+    Route::get('brands/{brand:slug}', 'Api\V1\CatalogController@brand')->name('brands.show');
+    Route::get('products/{product:slug}', 'Api\V1\CatalogController@product')->name('products.show');
+});
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
