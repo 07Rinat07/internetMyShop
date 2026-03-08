@@ -5,15 +5,29 @@
   "scripts": {
     "dev": "nuxt dev --port 3000",
     "build": "nuxt build",
+    "lint": "eslint . --ext .ts",
     "preview": "nuxt preview",
+    "test:unit": "vitest run",
+    "typecheck": "vue-tsc --noEmit -p .nuxt/tsconfig.json",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:install": "playwright install chromium",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "nuxt": "^3.0.0"
+    "nuxt": "^4.3.1"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^25.3.5",
+    "eslint": "^9.39.4",
+    "eslint-plugin-vue": "^10.8.0",
+    "globals": "^16.5.0",
     "typescript": "^5.0.0",
-    "vue-tsc": "^2.0.0"
+    "typescript-eslint": "^8.56.1",
+    "vitest": "^4.0.18",
+    "vue-eslint-parser": "^10.4.0",
+    "vue-tsc": "^3.2.5"
   }
 }

@@ -54,14 +54,14 @@ async function submit() {
   errorMessage.value = ''
   feedback.value = ''
 
-  try {
-    if (mode.value === 'login') {
-      await auth.login(loginForm)
-      feedback.value = 'Signed in through Sanctum.'
-    } else {
-      await auth.register(registerForm)
-      feedback.value = 'Account created and token issued.'
-    }
+      try {
+        if (mode.value === 'login') {
+          await auth.login(loginForm)
+          feedback.value = 'Signed in through the Nuxt BFF session.'
+        } else {
+          await auth.register(registerForm)
+          feedback.value = 'Account created and secure session started.'
+        }
 
     await navigateTo((route.query.redirect as string) || '/profile')
   } catch (error) {
@@ -76,18 +76,18 @@ async function submit() {
       <span class="hero__eyebrow">Auth Gateway</span>
       <h1>Login and registration now live outside the monolith.</h1>
       <p>
-        This screen talks directly to <span class="mono">/api/v1/auth/*</span> and stores the
-        issued Sanctum token for account pages like profiles and orders.
+        This screen talks to the local <span class="mono">/bff/auth/*</span> routes. The Nuxt
+        server keeps the backend token in an HttpOnly cookie and proxies protected API calls.
       </p>
 
       <div class="metric-row">
         <div class="metric">
           <span class="muted">Contract</span>
-          <strong>Bearer</strong>
+          <strong>BFF proxy</strong>
         </div>
         <div class="metric">
           <span class="muted">Runtime</span>
-          <strong>Nuxt 3</strong>
+          <strong>Nuxt 4</strong>
         </div>
         <div class="metric">
           <span class="muted">Backend</span>
@@ -107,6 +107,7 @@ async function submit() {
             class="button"
             :class="mode === 'login' ? 'button--accent' : 'button--ghost'"
             type="button"
+            data-testid="auth-mode-login"
             @click="mode = 'login'"
           >
             Login
@@ -115,6 +116,7 @@ async function submit() {
             class="button"
             :class="mode === 'register' ? 'button--accent' : 'button--ghost'"
             type="button"
+            data-testid="auth-mode-register"
             @click="mode = 'register'"
           >
             Register
@@ -184,7 +186,7 @@ async function submit() {
           {{ feedback }}
         </div>
 
-        <button class="button button--accent" type="submit" :disabled="auth.busy.value">
+        <button class="button button--accent" data-testid="auth-submit" type="submit" :disabled="auth.busy.value">
           {{ auth.busy.value ? 'Submitting...' : mode === 'login' ? 'Login' : 'Register' }}
         </button>
       </form>

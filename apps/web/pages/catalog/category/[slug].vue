@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import type { CategoryProductsPayload, PaginatedEnvelope } from '~/types/api'
+import { normalizePositivePage } from '~/utils/pagination'
 
 const api = useApiClient()
 const basket = useBasket()
 const route = useRoute()
 
 const slug = computed(() => route.params.slug as string)
-const page = computed(() => {
-  const current = Number(route.query.page || 1)
-
-  return Number.isNaN(current) || current < 1 ? 1 : current
-})
+const page = computed(() => normalizePositivePage(route.query.page))
 
 const feedback = ref('')
 const actionError = ref('')
@@ -99,6 +96,7 @@ async function goToPage(nextPage: number) {
           v-for="product in data.data.products"
           :key="product.id"
           class="card stack"
+          data-testid="product-card"
         >
           <div class="pill-row">
             <span v-if="product.flags.new" class="pill">new</span>
@@ -107,9 +105,17 @@ async function goToPage(nextPage: number) {
           </div>
 
           <div class="stack">
-            <h3>{{ product.name }}</h3>
+            <h3>
+              <NuxtLink :to="`/products/${product.slug}`">
+                {{ product.name }}
+              </NuxtLink>
+            </h3>
             <p class="muted mono">slug: {{ product.slug }}</p>
-            <p v-if="product.brand">{{ product.brand.name }}</p>
+            <p v-if="product.brand">
+              <NuxtLink :to="`/brands/${product.brand.slug}`">
+                {{ product.brand.name }}
+              </NuxtLink>
+            </p>
           </div>
 
           <div class="metric-row">
@@ -123,6 +129,7 @@ async function goToPage(nextPage: number) {
             <button
               class="button button--accent"
               type="button"
+              data-testid="product-add-button"
               :disabled="activeProductId === product.id"
               @click="addToBasket(product.id)"
             >

@@ -16,24 +16,24 @@ type ApiClientOptions = NonNullable<Parameters<typeof $fetch>[1]> & {
 
 export function useApiClient() {
   const config = useRuntimeConfig()
-  const token = useCookie<string | null>('access_token', {
-    sameSite: 'lax',
-    secure: !import.meta.dev,
-  })
   const authUser = useState<AuthUser | null>('auth-user', () => null)
+  const authResolved = useState<boolean>('auth-resolved', () => false)
+  const apiBase = config.public.apiBase
 
   return async function apiClient<T>(path: string, options: ApiClientOptions = {}) {
     const headers = new Headers(options.headers as HeadersInit | undefined)
+    const requestCookies = import.meta.server ? useRequestHeaders(['cookie']).cookie : undefined
+
     headers.set('Accept', 'application/json')
 
-    if (token.value) {
-      headers.set('Authorization', `Bearer ${token.value}`)
+    if (requestCookies && !headers.has('cookie')) {
+      headers.set('cookie', requestCookies)
     }
 
     try {
       return await $fetch<T>(path, {
         ...options,
-        baseURL: config.public.apiBase,
+        baseURL: apiBase,
         credentials: 'include',
         headers,
       })
@@ -41,8 +41,8 @@ export function useApiClient() {
       const status = (error as ApiErrorShape).response?.status
 
       if (status === 401) {
-        token.value = null
         authUser.value = null
+        authResolved.value = true
       }
 
       throw error

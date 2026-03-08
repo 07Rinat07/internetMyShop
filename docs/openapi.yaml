@@ -8,7 +8,8 @@ info:
     is handled via Laravel Sanctum bearer tokens. Basket endpoints remain
     guest-friendly and use the legacy cookie-based basket identifier.
 servers:
-  - url: http://localhost/api/v1
+  - url: /api/v1
+    description: Same-host API base for local and Docker Swagger UI
 tags:
   - name: Auth
   - name: Catalog

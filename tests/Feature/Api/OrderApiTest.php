@@ -7,19 +7,22 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class OrderApiTest extends TestCase {
+class OrderApiTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_unauthenticated_user_cannot_access_orders() {
+    public function test_unauthenticated_user_cannot_access_orders()
+    {
         $response = $this->getJson('/api/v1/orders');
 
         $response->assertUnauthorized();
     }
 
-    public function test_index_returns_only_authenticated_users_orders() {
-        $user = factory(User::class)->create();
+    public function test_index_returns_only_authenticated_users_orders()
+    {
+        $user = User::factory()->create();
         $token = $user->createToken('orders-index')->plainTextToken;
-        $otherUser = factory(User::class)->create();
+        $otherUser = User::factory()->create();
 
         $ownOrder = $this->createOrderForUser($user, 'own@example.com');
         $this->createOrderForUser($otherUser, 'foreign@example.com');
@@ -34,10 +37,11 @@ class OrderApiTest extends TestCase {
             ->assertJsonPath('data.0.status.code', 0);
     }
 
-    public function test_show_returns_only_owned_order_details() {
-        $user = factory(User::class)->create();
+    public function test_show_returns_only_owned_order_details()
+    {
+        $user = User::factory()->create();
         $token = $user->createToken('orders-show')->plainTextToken;
-        $otherUser = factory(User::class)->create();
+        $otherUser = User::factory()->create();
 
         $ownOrder = $this->createOrderForUser($user, 'owned@example.com');
         $foreignOrder = $this->createOrderForUser($otherUser, 'hidden@example.com');
@@ -57,17 +61,19 @@ class OrderApiTest extends TestCase {
         $foreignResponse->assertNotFound();
     }
 
-    private function createOrderForUser(User $user, $email) {
-        $order = Order::create([
-            'user_id' => $user->id,
+    private function createOrderForUser(User $user, $email)
+    {
+        $order = new Order([
             'name' => 'Order User',
             'email' => $email,
             'phone' => '+70000000020',
             'address' => 'Order street',
             'comment' => 'Order comment',
-            'amount' => 500,
             'status' => 0,
         ]);
+        $order->user()->associate($user);
+        $order->amount = 500;
+        $order->save();
 
         $order->items()->create([
             'product_id' => null,

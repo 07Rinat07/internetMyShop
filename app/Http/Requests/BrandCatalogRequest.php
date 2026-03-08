@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests;
 
-class BrandCatalogRequest extends CatalogRequest {
-
+class BrandCatalogRequest extends CatalogRequest
+{
     /**
      * С какой сущностью сейчас работаем (бренд каталога)
+     *
      * @var array
      */
     protected $entity = [
         'name' => 'brand',
-        'table' => 'brands'
+        'table' => 'brands',
     ];
 
     /**
@@ -18,11 +19,13 @@ class BrandCatalogRequest extends CatalogRequest {
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return parent::authorize();
     }
 
-    public function rules() {
+    public function rules()
+    {
         return parent::rules();
     }
 
@@ -30,8 +33,10 @@ class BrandCatalogRequest extends CatalogRequest {
      * Объединяет дефолтные правила и правила, специфичные для бренда
      * для проверки данных при добавлении нового бренда
      */
-    protected function createItem() {
+    protected function createItem()
+    {
         $rules = [];
+
         return array_merge(parent::createItem(), $rules);
     }
 
@@ -39,8 +44,10 @@ class BrandCatalogRequest extends CatalogRequest {
      * Объединяет дефолтные правила и правила, специфичные для бренда
      * для проверки данных при обновлении существующего бренда
      */
-    protected function updateItem() {
+    protected function updateItem()
+    {
         $rules = [];
+
         return array_merge(parent::updateItem(), $rules);
     }
 }

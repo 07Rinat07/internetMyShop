@@ -4,20 +4,25 @@ namespace App\Http\Resources\Api\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BasketItemResource extends JsonResource {
-    public function toArray($request) {
+/**
+ * @mixin \App\Models\Product
+ */
+class BasketItemResource extends JsonResource
+{
+    public function toArray($request)
+    {
         return [
             'product_id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
             'price' => $this->price,
-            'quantity' => (int)$this->pivot->quantity,
+            'quantity' => (int) $this->pivot->quantity,
             'cost' => $this->price * $this->pivot->quantity,
             'image' => $this->image,
             'flags' => [
-                'new' => (bool)$this->new,
-                'hit' => (bool)$this->hit,
-                'sale' => (bool)$this->sale,
+                'new' => (bool) $this->new,
+                'hit' => (bool) $this->hit,
+                'sale' => (bool) $this->sale,
             ],
             'brand' => $this->brand ? [
                 'id' => $this->brand->id,

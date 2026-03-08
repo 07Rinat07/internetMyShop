@@ -1,9 +1,9 @@
 <?php
+
 namespace App\Helpers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ImageSaver {
     /**
@@ -53,14 +53,15 @@ class ImageSaver {
      */
     private function resize($src, $dst, $width, $height, $ext) {
         // создаем уменьшенное изображение width x height, качество 100%
-        $image = Image::make($src)
-            ->heighten($height)
-            ->resizeCanvas($width, $height, 'center', false, 'eeeeee')
-            ->encode($ext, 100);
+        $image = Image::read($src)
+            ->scale(height: $height)
+            ->resizeCanvas(width: $width, height: $height, background: 'eeeeee');
         // сохраняем это изображение под тем же именем, что исходное
         $name = basename($src);
-        Storage::disk('public')->put($dst . $name, $image);
-        $image->destroy();
+        Storage::disk('public')->put(
+            $dst . $name,
+            (string)$image->encodeByExtension($ext, quality: 100)
+        );
     }
 
     /**

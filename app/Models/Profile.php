@@ -4,9 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Profile extends Model {
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string|null $title
+ * @property string $name
+ * @property string $email
+ * @property string $phone
+ * @property string $address
+ * @property string|null $comment
+ * @property-read \App\Models\User $user
+ */
+class Profile extends Model
+{
     protected $fillable = [
-        'user_id',
         'title',
         'name',
         'email',
@@ -20,7 +31,8 @@ class Profile extends Model {
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 }

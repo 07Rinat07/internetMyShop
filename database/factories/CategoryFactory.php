@@ -1,17 +1,28 @@
 <?php
 
-/** @var \Illuminate\Database\Eloquent\Factory $factory */
+namespace Database\Factories;
 
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Faker\Generator as Faker;
 
-$factory->define(Category::class, function (Faker $faker) {
-    $name = $faker->realText(rand(30, 40));
-    return [
-        'parent_id' => rand(0, 4),
-        'name' => $name,
-        'content' => $faker->realText(rand(150, 200)),
-        'slug' => Str::slug($name),
-    ];
-});
+/**
+ * @extends Factory<Category>
+ */
+class CategoryFactory extends Factory
+{
+    protected $model = Category::class;
+
+    public function definition(): array
+    {
+        $name = fake()->realText(random_int(30, 40));
+
+        return [
+            'parent_id' => 0,
+            'name' => $name,
+            'content' => fake()->realText(random_int(150, 200)),
+            'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1000, 9999),
+            'image' => null,
+        ];
+    }
+}

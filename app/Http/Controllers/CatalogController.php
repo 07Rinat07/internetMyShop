@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\ProductFilter;
+use App\Domain\Catalog\Filters\ProductFilters;
+use App\Domain\Catalog\Queries\ProductSearchQuery;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
@@ -15,7 +16,7 @@ class CatalogController extends Controller {
         return view('catalog.index', compact('roots', 'brands'));
     }
 
-    public function category(Category $category, ProductFilter $filters) {
+    public function category(Category $category, ProductFilters $filters) {
         $products = Product::categoryProducts($category->id)
             ->filterProducts($filters)
             ->paginate(6)
@@ -23,7 +24,7 @@ class CatalogController extends Controller {
         return view('catalog.category', compact('category', 'products'));
     }
 
-    public function brand(Brand $brand, ProductFilter $filters) {
+    public function brand(Brand $brand, ProductFilters $filters) {
         $products = $brand
             ->products() // возвращает построитель запроса
             ->filterProducts($filters)
@@ -36,9 +37,9 @@ class CatalogController extends Controller {
         return view('catalog.product', compact('product'));
     }
 
-    public function search(Request $request) {
+    public function search(Request $request, ProductSearchQuery $searchQuery) {
         $search = $request->input('query');
-        $query = Product::search($search);
+        $query = $searchQuery->build((string) $search);
         $products = $query->paginate(6)->withQueryString();
         return view('catalog.search', compact('products', 'search'));
     }

@@ -2,9 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $parent_id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $content
+ * @property string|null $image
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Category> $children
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
+ */
 class Category extends Model {
+    use HasFactory;
 
     protected $fillable = [
         'parent_id',

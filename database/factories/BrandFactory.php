@@ -1,16 +1,27 @@
 <?php
 
-/** @var \Illuminate\Database\Eloquent\Factory $factory */
+namespace Database\Factories;
 
 use App\Models\Brand;
-use Faker\Generator as Faker;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-$factory->define(Brand::class, function (Faker $faker) {
-    $name = $faker->realText(rand(20, 30));
-    return [
-        'name' => $name,
-        'content' => $faker->realText(rand(150, 200)),
-        'slug' => Str::slug($name),
-    ];
-});
+/**
+ * @extends Factory<Brand>
+ */
+class BrandFactory extends Factory
+{
+    protected $model = Brand::class;
+
+    public function definition(): array
+    {
+        $name = fake()->realText(random_int(20, 30));
+
+        return [
+            'name' => $name,
+            'content' => fake()->realText(random_int(150, 200)),
+            'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1000, 9999),
+            'image' => null,
+        ];
+    }
+}

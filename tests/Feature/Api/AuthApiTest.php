@@ -7,10 +7,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
-class AuthApiTest extends TestCase {
+class AuthApiTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_register_returns_token_and_user_payload() {
+    public function test_register_returns_token_and_user_payload()
+    {
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'New Api User',
             'email' => 'new-api-user@example.com',
@@ -29,8 +31,9 @@ class AuthApiTest extends TestCase {
         $this->assertSame(1, PersonalAccessToken::count());
     }
 
-    public function test_login_me_and_logout_work_with_sanctum_token() {
-        $user = factory(User::class)->create([
+    public function test_login_me_and_logout_work_with_sanctum_token()
+    {
+        $user = User::factory()->create([
             'email' => 'login-api-user@example.com',
             'password' => bcrypt('password123'),
         ]);
@@ -61,8 +64,9 @@ class AuthApiTest extends TestCase {
         $this->assertSame(0, PersonalAccessToken::count());
     }
 
-    public function test_login_rejects_invalid_credentials() {
-        factory(User::class)->create([
+    public function test_login_rejects_invalid_credentials()
+    {
+        User::factory()->create([
             'email' => 'wrong-pass@example.com',
             'password' => bcrypt('password123'),
         ]);

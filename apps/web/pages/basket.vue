@@ -105,11 +105,11 @@ async function clearBasket() {
           <NuxtLink class="button button--ghost" to="/catalog">
             Continue shopping
           </NuxtLink>
-          <button
-            class="button button--danger"
-            type="button"
-            :disabled="basket.isEmpty.value || clearing"
-            @click="clearBasket"
+            <button
+              class="button button--danger"
+              type="button"
+              :disabled="basket.isEmpty.value || clearing"
+              @click="clearBasket"
           >
             {{ clearing ? 'Clearing...' : 'Clear basket' }}
           </button>
@@ -125,6 +125,7 @@ async function clearBasket() {
             v-for="item in basket.basket.value.items"
             :key="item.product_id"
             class="list-item"
+            data-testid="basket-item"
           >
             <div class="list-item__header">
               <div>
@@ -186,7 +187,7 @@ async function clearBasket() {
             </div>
           </div>
 
-          <NuxtLink class="button button--accent" to="/checkout">
+          <NuxtLink class="button button--accent" data-testid="basket-checkout-link" to="/checkout">
             Go to checkout
           </NuxtLink>
         </aside>

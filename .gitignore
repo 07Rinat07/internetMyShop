@@ -5,7 +5,9 @@
 /vendor
 .idea/
 .env
+.env.docker
 .env.backup
+.phpunit.cache/
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
@@ -14,3 +16,4 @@ yarn-error.log
 apps/web/node_modules/
 apps/web/.nuxt/
 apps/web/.output/
+database/playwright.sqlite

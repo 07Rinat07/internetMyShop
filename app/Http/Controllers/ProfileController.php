@@ -6,6 +6,10 @@ use App\Http\Requests\ProfileUpsertRequest;
 use App\Models\Profile;
 
 class ProfileController extends Controller {
+    public function __construct()
+    {
+        $this->authorizeResource(Profile::class, 'profile');
+    }
 
     /**
      * Показывает список всех профилей
@@ -44,9 +48,8 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function store(ProfileUpsertRequest $request) {
-        $profile = Profile::create(array_merge($request->validated(), [
-            'user_id' => auth()->id(),
-        ]));
+        $profile = auth()->user()->profiles()->create($request->validated());
+
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
             ->with('success', 'Новый профиль успешно создан');
@@ -59,9 +62,6 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function show(Profile $profile) {
-        if ((int)$profile->user_id !== (int)auth()->id()) {
-            abort(404); // это чужой профиль
-        }
         return view('user.profile.show', compact('profile'));
     }
 
@@ -72,9 +72,6 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function edit(Profile $profile) {
-        if ((int)$profile->user_id !== (int)auth()->id()) {
-            abort(404); // это чужой профиль
-        }
         return view('user.profile.edit', compact('profile'));
     }
 
@@ -86,10 +83,6 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function update(ProfileUpsertRequest $request, Profile $profile) {
-        if ((int)$profile->user_id !== (int)auth()->id()) {
-            abort(404); // это чужой профиль
-        }
-
         $profile->update($request->validated());
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
@@ -103,9 +96,6 @@ class ProfileController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function destroy(Profile $profile) {
-        if ((int)$profile->user_id !== (int)auth()->id()) {
-            abort(404); // это чужой профиль
-        }
         $profile->delete();
         return redirect()
             ->route('user.profile.index')

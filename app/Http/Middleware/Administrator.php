@@ -3,12 +3,14 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Support\Facades\Gate;
 
-class Administrator {
-    public function handle($request, Closure $next, $guard = null) {
-        if (!auth()->user()->admin) {
-            abort(404);
-        }
+class Administrator
+{
+    public function handle($request, Closure $next, $guard = null)
+    {
+        Gate::authorize('access-admin');
+
         return $next($request);
     }
 
@@ -18,11 +20,4 @@ class Administrator {
      * @param  \Illuminate\Http\Request  $request
      * @return string|null
      */
-    /*
-    protected function redirectTo($request) {
-        if (!auth()->user()->admin) {
-            return route('user.index');
-        }
-    }
-    */
 }

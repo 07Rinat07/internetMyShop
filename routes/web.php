@@ -1,93 +1,76 @@
 <?php
 
+use App\Http\Controllers\Admin\BrandController as AdminBrandController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\IndexController as AdminIndexController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PageController as AdminPageController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\BasketController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\IndexController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SwaggerController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
 /*
  * Главная страница интернет-магазина
  */
-Route::get('/', 'IndexController')->name('index');
+Route::get('/', IndexController::class)->name('index');
+
+/*
+ * Swagger UI и OpenAPI-спецификация
+ */
+Route::get('/swagger', [SwaggerController::class, 'index'])->name('swagger.index');
+Route::get('/swagger/openapi.yaml', [SwaggerController::class, 'spec'])->name('swagger.spec');
 
 /*
  * Страницы «Доставка», «Контакты» и прочие
  */
-Route::get('/page/{page:slug}', 'PageController')->name('page.show');
+Route::get('/page/{page:slug}', PageController::class)->name('page.show');
 
 /*
  * Каталог товаров: категория, бренд и товар
  */
 Route::group([
-    'as' => 'catalog.', // имя маршрута, например catalog.index
-    'prefix' => 'catalog', // префикс маршрута, например catalog/index
+    'as' => 'catalog.',
+    'prefix' => 'catalog',
 ], function () {
-    // главная страница каталога
-    Route::get('index', 'CatalogController@index')
-        ->name('index');
-    // категория каталога товаров
-    Route::get('category/{category:slug}', 'CatalogController@category')
-        ->name('category');
-    // бренд каталога товаров
-    Route::get('brand/{brand:slug}', 'CatalogController@brand')
-        ->name('brand');
-    // страница товара каталога
-    Route::get('product/{product:slug}', 'CatalogController@product')
-        ->name('product');
-    // страница результатов поиска
-    Route::get('search', 'CatalogController@search')
-        ->name('search');
+    Route::get('index', [CatalogController::class, 'index'])->name('index');
+    Route::get('category/{category:slug}', [CatalogController::class, 'category'])->name('category');
+    Route::get('brand/{brand:slug}', [CatalogController::class, 'brand'])->name('brand');
+    Route::get('product/{product:slug}', [CatalogController::class, 'product'])->name('product');
+    Route::get('search', [CatalogController::class, 'search'])->name('search');
 });
 
 /*
  * Корзина покупателя
  */
 Route::group([
-    'as' => 'basket.', // имя маршрута, например basket.index
-    'prefix' => 'basket', // префикс маршрута, например basket/index
+    'as' => 'basket.',
+    'prefix' => 'basket',
 ], function () {
-    // список всех товаров в корзине
-    Route::get('index', 'BasketController@index')
-        ->name('index');
-    // страница с формой оформления заказа
-    Route::get('checkout', 'BasketController@checkout')
-        ->name('checkout');
-    // получение данных профиля для оформления
-    Route::post('profile', 'BasketController@profile')
-        ->name('profile');
-    // отправка данных формы для сохранения заказа в БД
-    Route::post('saveorder', 'BasketController@saveOrder')
-        ->name('saveorder');
-    // страница после успешного сохранения заказа в БД
-    Route::get('success', 'BasketController@success')
-        ->name('success');
-    // отправка формы добавления товара в корзину
-    Route::post('add/{id}', 'BasketController@add')
-        ->where('id', '[0-9]+')
-        ->name('add');
-    // отправка формы изменения кол-ва отдельного товара в корзине
-    Route::post('plus/{id}', 'BasketController@plus')
-        ->where('id', '[0-9]+')
-        ->name('plus');
-    // отправка формы изменения кол-ва отдельного товара в корзине
-    Route::post('minus/{id}', 'BasketController@minus')
-        ->where('id', '[0-9]+')
-        ->name('minus');
-    // отправка формы удаления отдельного товара из корзины
-    Route::post('remove/{id}', 'BasketController@remove')
-        ->where('id', '[0-9]+')
-        ->name('remove');
-    // отправка формы для удаления всех товаров из корзины
-    Route::post('clear', 'BasketController@clear')
-        ->name('clear');
+    Route::get('index', [BasketController::class, 'index'])->name('index');
+    Route::get('checkout', [BasketController::class, 'checkout'])->name('checkout');
+    Route::post('profile', [BasketController::class, 'profile'])->name('profile');
+    Route::post('saveorder', [BasketController::class, 'saveOrder'])->name('saveorder');
+    Route::get('success', [BasketController::class, 'success'])->name('success');
+    Route::post('add/{id}', [BasketController::class, 'add'])->where('id', '[0-9]+')->name('add');
+    Route::post('plus/{id}', [BasketController::class, 'plus'])->where('id', '[0-9]+')->name('plus');
+    Route::post('minus/{id}', [BasketController::class, 'minus'])->where('id', '[0-9]+')->name('minus');
+    Route::post('remove/{id}', [BasketController::class, 'remove'])->where('id', '[0-9]+')->name('remove');
+    Route::post('clear', [BasketController::class, 'clear'])->name('clear');
 });
 
 /*
@@ -101,54 +84,36 @@ Route::name('user.')->prefix('user')->group(function () {
  * Личный кабинет зарегистрированного пользователя
  */
 Route::group([
-    'as' => 'user.', // имя маршрута, например user.index
-    'prefix' => 'user', // префикс маршрута, например user/index
-    'middleware' => ['auth'] // один или несколько посредников
+    'as' => 'user.',
+    'prefix' => 'user',
+    'middleware' => ['auth'],
 ], function () {
-    // главная страница личного кабинета пользователя
-    Route::get('index', 'UserController@index')->name('index');
-    // CRUD-операции над профилями пользователя
-    Route::resource('profile', 'ProfileController');
-    // просмотр списка заказов в личном кабинете
-    Route::get('order', 'OrderController@index')->name('order.index');
-    // просмотр отдельного заказа в личном кабинете
-    Route::get('order/{order}', 'OrderController@show')->name('order.show');
+    Route::get('index', [UserController::class, 'index'])->name('index');
+    Route::resource('profile', ProfileController::class);
+    Route::get('order', [OrderController::class, 'index'])->name('order.index');
+    Route::get('order/{order}', [OrderController::class, 'show'])->name('order.show');
 });
 
 /*
  * Панель управления магазином для администратора сайта
  */
 Route::group([
-    'as' => 'admin.', // имя маршрута, например admin.index
-    'prefix' => 'admin', // префикс маршрута, например admin/index
-    'namespace' => 'Admin', // пространство имен контроллера
-    'middleware' => ['auth', 'admin'] // один или несколько посредников
+    'as' => 'admin.',
+    'prefix' => 'admin',
+    'middleware' => ['auth', 'admin'],
 ], function () {
-    // главная страница панели управления
-    Route::get('index', 'IndexController')->name('index');
-    // CRUD-операции над категориями каталога
-    Route::resource('category', 'CategoryController');
-    // CRUD-операции над брендами каталога
-    Route::resource('brand', 'BrandController');
-    // CRUD-операции над товарами каталога
-    Route::resource('product', 'ProductController');
-    // доп.маршрут для показа товаров категории
-    Route::get('product/category/{category}', 'ProductController@category')
-        ->name('product.category');
-    // просмотр и редактирование заказов
-    Route::resource('order', 'OrderController', ['except' => [
-        'create', 'store', 'destroy'
-    ]]);
-    // просмотр и редактирование пользователей
-    Route::resource('user', 'UserController', ['except' => [
-        'create', 'store', 'show', 'destroy'
-    ]]);
-    // CRUD-операции над страницами сайта
-    Route::resource('page', 'PageController');
-    // загрузка изображения из wysiwyg-редактора
-    Route::post('page/upload/image', 'PageController@uploadImage')
-        ->name('page.upload.image');
-    // удаление изображения в wysiwyg-редакторе
-    Route::delete('page/remove/image', 'PageController@removeImage')
-        ->name('page.remove.image');
+    Route::get('index', AdminIndexController::class)->name('index');
+    Route::resource('category', AdminCategoryController::class);
+    Route::resource('brand', AdminBrandController::class);
+    Route::resource('product', AdminProductController::class);
+    Route::get('product/category/{category}', [AdminProductController::class, 'category'])->name('product.category');
+    Route::resource('order', AdminOrderController::class)->except([
+        'create', 'store', 'destroy',
+    ]);
+    Route::resource('user', AdminUserController::class)->except([
+        'create', 'store', 'show', 'destroy',
+    ]);
+    Route::resource('page', AdminPageController::class);
+    Route::post('page/upload/image', [AdminPageController::class, 'uploadImage'])->name('page.upload.image');
+    Route::delete('page/remove/image', [AdminPageController::class, 'removeImage'])->name('page.remove.image');
 });

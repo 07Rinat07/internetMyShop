@@ -2,55 +2,55 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
-class Order extends Model {
+/**
+ * @property int $id
+ * @property int|null $user_id
+ * @property string $name
+ * @property string $email
+ * @property string $phone
+ * @property string $address
+ * @property string|null $comment
+ * @property float $amount
+ * @property int $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int|null $items_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $items
+ * @property-read \App\Models\User|null $user
+ */
+class Order extends Model
+{
     protected $fillable = [
-        'user_id',
         'name',
         'email',
         'phone',
         'address',
         'comment',
-        'amount',
         'status',
     ];
 
     public const STATUSES = [
-        0 => 'Новый',
-        1 => 'Обработан',
-        2 => 'Оплачен',
-        3 => 'Доставлен',
-        4 => 'Завершен',
+        OrderStatus::New->value => 'Новый',
+        OrderStatus::Processed->value => 'Обработан',
+        OrderStatus::Paid->value => 'Оплачен',
+        OrderStatus::Delivered->value => 'Доставлен',
+        OrderStatus::Completed->value => 'Завершен',
     ];
 
-    /**
-     * Преобразует дату и время создания заказа из UTC в Europe/Moscow
-     *
-     * @param $value
-     * @return \Carbon\Carbon|false
-     */
-    public function getCreatedAtAttribute($value) {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $value)->timezone('Europe/Moscow');
-    }
-
-    /**
-     * Преобразует дату и время обновления заказа из UTC в Europe/Moscow
-     *
-     * @param $value
-     * @return \Carbon\Carbon|false
-     */
-    public function getUpdatedAtAttribute($value) {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $value)->timezone('Europe/Moscow');
-    }
+    protected $casts = [
+        'status' => 'integer',
+    ];
 
     /**
      * Связь «один ко многим» таблицы `orders` с таблицей `order_items`
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function items() {
+    public function items()
+    {
         return $this->hasMany(OrderItem::class);
     }
 
@@ -59,7 +59,13 @@ class Order extends Model {
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
+    }
+
+    public function statusEnum(): OrderStatus
+    {
+        return OrderStatus::from((int) $this->status);
     }
 }

@@ -11,8 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-class AuthController extends Controller {
-    public function register(RegisterRequest $request) {
+class AuthController extends Controller
+{
+    public function register(RegisterRequest $request)
+    {
         $user = User::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
@@ -22,7 +24,8 @@ class AuthController extends Controller {
         return $this->tokenResponse($user, $request->input('device_name', 'nuxt-client'), 201);
     }
 
-    public function login(LoginRequest $request) {
+    public function login(LoginRequest $request)
+    {
         $user = User::where('email', $request->input('email'))->first();
 
         if (! $user || ! Hash::check($request->input('password'), $user->password)) {
@@ -34,13 +37,15 @@ class AuthController extends Controller {
         return $this->tokenResponse($user, $request->input('device_name', 'nuxt-client'));
     }
 
-    public function me(Request $request) {
+    public function me(Request $request)
+    {
         return response()->json([
             'data' => (new AuthUserResource($request->user()))->resolve(),
         ]);
     }
 
-    public function logout(Request $request) {
+    public function logout(Request $request)
+    {
         $token = $request->user()->currentAccessToken();
 
         if ($token) {
@@ -50,7 +55,8 @@ class AuthController extends Controller {
         return response()->json([], 204);
     }
 
-    private function tokenResponse(User $user, string $deviceName, int $status = 200) {
+    private function tokenResponse(User $user, string $deviceName, int $status = 200)
+    {
         $token = $user->createToken($deviceName)->plainTextToken;
 
         return response()->json([

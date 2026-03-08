@@ -1,0 +1,25 @@
+includes:
+  - vendor/larastan/larastan/extension.neon
+
+parameters:
+  level: 2
+  paths:
+    - app/Actions
+    - app/Domain
+    - app/Enums
+    - app/Http/Controllers/Api/V1
+    - app/Http/Requests
+    - app/Http/Resources/Api/V1
+    - app/Models/Basket.php
+    - app/Models/Brand.php
+    - app/Models/Category.php
+    - app/Models/Order.php
+    - app/Models/Product.php
+    - app/Models/Profile.php
+    - app/Models/User.php
+    - tests/Feature/Api
+    - tests/Feature/Admin
+    - tests/Feature/OpenApiContractTest.php
+    - tests/Feature/ProductSearchTest.php
+    - tests/Feature/ProfileAuthorizationTest.php
+  tmpDir: storage/phpstan

@@ -7,22 +7,24 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ProfileApiTest extends TestCase {
+class ProfileApiTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_unauthenticated_user_cannot_access_profiles() {
+    public function test_unauthenticated_user_cannot_access_profiles()
+    {
         $response = $this->getJson('/api/v1/profiles');
 
         $response->assertUnauthorized();
     }
 
-    public function test_index_returns_only_authenticated_users_profiles() {
-        $user = factory(User::class)->create();
+    public function test_index_returns_only_authenticated_users_profiles()
+    {
+        $user = User::factory()->create();
         $token = $user->createToken('profiles-index')->plainTextToken;
-        $otherUser = factory(User::class)->create();
+        $otherUser = User::factory()->create();
 
-        Profile::create([
-            'user_id' => $user->id,
+        $user->profiles()->create([
             'title' => 'Main',
             'name' => 'User One',
             'email' => 'user1@example.com',
@@ -30,8 +32,7 @@ class ProfileApiTest extends TestCase {
             'address' => 'Address one',
             'comment' => 'Comment one',
         ]);
-        Profile::create([
-            'user_id' => $otherUser->id,
+        $otherUser->profiles()->create([
             'title' => 'Foreign',
             'name' => 'User Two',
             'email' => 'user2@example.com',
@@ -49,10 +50,11 @@ class ProfileApiTest extends TestCase {
             ->assertJsonPath('data.0.email', 'user1@example.com');
     }
 
-    public function test_store_ignores_client_side_user_id() {
-        $user = factory(User::class)->create();
+    public function test_store_ignores_client_side_user_id()
+    {
+        $user = User::factory()->create();
         $token = $user->createToken('profiles-store')->plainTextToken;
-        $otherUser = factory(User::class)->create();
+        $otherUser = User::factory()->create();
 
         $response = $this
             ->withToken($token)
@@ -69,15 +71,19 @@ class ProfileApiTest extends TestCase {
         $response->assertCreated()
             ->assertJsonPath('data.email', 'api-profile@example.com');
 
-        $this->assertEquals($user->id, Profile::first()->user_id);
+        /** @var Profile $profile */
+        $profile = Profile::query()->firstOrFail();
+
+        $this->assertEquals($user->id, $profile->user_id);
     }
 
-    public function test_foreign_profile_is_not_accessible() {
-        $user = factory(User::class)->create();
+    public function test_foreign_profile_is_not_accessible()
+    {
+        $user = User::factory()->create();
         $token = $user->createToken('profiles-foreign')->plainTextToken;
-        $otherUser = factory(User::class)->create();
-        $profile = Profile::create([
-            'user_id' => $otherUser->id,
+        $otherUser = User::factory()->create();
+        /** @var Profile $profile */
+        $profile = $otherUser->profiles()->create([
             'title' => 'Foreign',
             'name' => 'Foreign User',
             'email' => 'foreign@example.com',

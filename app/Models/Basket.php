@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cookie;
 
+/**
+ * @property int $id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
+ */
 class Basket extends Model {
 
     /**

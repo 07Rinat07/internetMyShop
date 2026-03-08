@@ -1,5 +1,8 @@
 <?php
 
+use App\Seeders\AdminUserSeeder;
+use App\Seeders\DemoCatalogSeeder;
+use App\Seeders\DemoUserSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,13 +14,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(CategoryTableSeeder::class);
-        $this->command->info('Таблица категорий загружена данными!');
+        $this->call(AdminUserSeeder::class);
+        $this->command->info('Создан тестовый администратор: admin@example.test / Password123!');
 
-        $this->call(BrandTableSeeder::class);
-        $this->command->info('Таблица брендов загружена данными!');
+        $this->call(DemoUserSeeder::class);
+        $this->command->info('Создан тестовый пользователь: user@example.test / Password123!');
 
-        $this->call(ProductTableSeeder::class);
-        $this->command->info('Таблица товаров загружена данными!');
+        $this->call(DemoCatalogSeeder::class);
+        $this->command->info('Загружены демо-категории, бренды и товары.');
     }
 }

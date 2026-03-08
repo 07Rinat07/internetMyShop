@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { CheckoutPayload, OrderDetail, Profile } from '~/types/api'
+import type { OrderDetail, Profile } from '~/types/api'
+import {
+  applyProfileToCheckout,
+  createEmptyCheckoutPayload,
+  prefillCheckoutFromUser,
+} from '~/utils/checkout'
 
 const api = useApiClient()
 const auth = useAuth()
@@ -14,25 +19,16 @@ const submitting = ref(false)
 const completedOrder = ref<OrderDetail | null>(null)
 const savedProfiles = ref<Profile[]>([])
 
-const form = reactive<CheckoutPayload>({
-  name: '',
-  email: '',
-  phone: '',
-  address: '',
-  comment: '',
-})
+const form = reactive(createEmptyCheckoutPayload())
 
 onMounted(async () => {
   try {
-    if (auth.token.value && !auth.user.value) {
-      await auth.ensureUser()
-    }
+    await auth.ensureUser()
 
     await basket.load(true)
 
     if (auth.user.value) {
-      form.name = auth.user.value.name
-      form.email = auth.user.value.email
+      Object.assign(form, prefillCheckoutFromUser(form, auth.user.value))
       await loadProfiles()
     }
   } catch (error) {
@@ -57,11 +53,7 @@ async function loadProfiles() {
 }
 
 function applyProfile(profile: Profile) {
-  form.name = profile.name
-  form.email = profile.email
-  form.phone = profile.phone
-  form.address = profile.address
-  form.comment = profile.comment || ''
+  Object.assign(form, applyProfileToCheckout(form, profile))
 }
 
 async function submitCheckout() {
@@ -145,9 +137,14 @@ async function submitCheckout() {
                     <strong>{{ profile.title }}</strong>
                     <p>{{ profile.address }}</p>
                   </div>
-                  <button class="button button--ghost" type="button" @click="applyProfile(profile)">
-                    Use profile
-                  </button>
+            <button
+              class="button button--ghost"
+              data-testid="saved-profile-use"
+              type="button"
+              @click="applyProfile(profile)"
+            >
+              Use profile
+            </button>
                 </div>
               </article>
             </div>
@@ -183,7 +180,12 @@ async function submitCheckout() {
               <textarea id="checkout-comment" v-model="form.comment" class="textarea"></textarea>
             </div>
 
-            <button class="button button--accent" type="submit" :disabled="submitting || basket.isEmpty.value">
+            <button
+              class="button button--accent"
+              data-testid="checkout-submit"
+              type="submit"
+              :disabled="submitting || basket.isEmpty.value"
+            >
               {{ submitting ? 'Submitting order...' : 'Place order' }}
             </button>
           </form>
@@ -230,7 +232,7 @@ async function submitCheckout() {
       </div>
 
       <section v-if="completedOrder" class="section">
-        <article class="card card--accent stack">
+        <article class="card card--accent stack" data-testid="checkout-success">
           <span class="eyebrow">Order created</span>
           <h2>Order #{{ completedOrder.id }}</h2>
           <div class="pill-row">

@@ -2,13 +2,13 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\CategoryParent;
 use Illuminate\Foundation\Http\FormRequest;
 
-abstract class CatalogRequest extends FormRequest {
-
+abstract class CatalogRequest extends FormRequest
+{
     /**
      * С какой сущностью сейчас работаем: категория, бренд, товар
+     *
      * @var array
      */
     protected $entity = [];
@@ -18,7 +18,8 @@ abstract class CatalogRequest extends FormRequest {
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return true;
     }
 
@@ -27,22 +28,27 @@ abstract class CatalogRequest extends FormRequest {
      *
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         switch ($this->method()) {
             case 'POST':
                 return $this->createItem();
             case 'PUT':
             case 'PATCH':
                 $rules = $this->updateItem();
+
                 return $rules;
         }
+
+        return [];
     }
 
     /**
      * Задает дефолтные правила для проверки данных при добавлении
      * категории, бренда или товара
      */
-    protected function createItem() {
+    protected function createItem()
+    {
         return [
             'name' => [
                 'required',
@@ -56,7 +62,7 @@ abstract class CatalogRequest extends FormRequest {
             ],
             'image' => [
                 'mimes:jpeg,jpg,png',
-                'max:5000'
+                'max:5000',
             ],
         ];
     }
@@ -65,9 +71,11 @@ abstract class CatalogRequest extends FormRequest {
      * Задает дефолтные правила для проверки данных при обновлении
      * категории, бренда или товара
      */
-    protected function updateItem() {
+    protected function updateItem()
+    {
         // получаем объект модели из маршрута: admin/entity/{entity}
         $model = $this->route($this->entity['name']);
+
         return [
             'name' => [
                 'required',
@@ -82,7 +90,7 @@ abstract class CatalogRequest extends FormRequest {
             ],
             'image' => [
                 'mimes:jpeg,jpg,png',
-                'max:5000'
+                'max:5000',
             ],
         ];
     }

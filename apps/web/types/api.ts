@@ -36,8 +36,6 @@ export type AuthUser = {
 }
 
 export type AuthResponseData = {
-  token_type: string
-  access_token: string
   user: AuthUser
 }
 
@@ -99,6 +97,11 @@ export type CatalogIndexPayload = {
 
 export type CategoryProductsPayload = {
   category: CategoryTree
+  products: ProductListItem[]
+}
+
+export type BrandProductsPayload = {
+  brand: Brand
   products: ProductListItem[]
 }
 
@@ -180,4 +183,8 @@ export type CheckoutPayload = {
   phone: string
   address: string
   comment: string
+}
+
+export type ProductDetail = ProductListItem & {
+  content: string | null
 }

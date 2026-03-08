@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Europe/Moscow'),
 
     /*
     |--------------------------------------------------------------------------
@@ -175,10 +175,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         App\Providers\ComposerServiceProvider::class,
-
-        Intervention\Image\ImageServiceProvider::class,
 
     ],
 
@@ -232,9 +229,6 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
-        //'ImageSaver' => App\Helpers\Facades\ImageSaver::class,
-
-        'Image' => Intervention\Image\Facades\Image::class
     ],
 
 ];

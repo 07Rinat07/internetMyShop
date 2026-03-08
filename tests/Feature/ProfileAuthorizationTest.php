@@ -7,15 +7,17 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ProfileAuthorizationTest extends TestCase {
+class ProfileAuthorizationTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_user_cannot_update_foreign_profile() {
-        $owner = factory(User::class)->create();
-        $intruder = factory(User::class)->create();
+    public function test_user_cannot_update_foreign_profile()
+    {
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
 
-        $profile = Profile::create([
-            'user_id' => $owner->id,
+        /** @var Profile $profile */
+        $profile = $owner->profiles()->create([
             'title' => 'Основной',
             'name' => 'Owner User',
             'email' => 'owner@example.com',
@@ -36,8 +38,11 @@ class ProfileAuthorizationTest extends TestCase {
                 'user_id' => $intruder->id,
             ]);
 
+        /** @var Profile $freshProfile */
+        $freshProfile = $profile->fresh();
+
         $response->assertNotFound();
-        $this->assertEquals($owner->id, $profile->fresh()->user_id);
-        $this->assertSame('Owner User', $profile->fresh()->name);
+        $this->assertEquals($owner->id, $freshProfile->user_id);
+        $this->assertSame('Owner User', $freshProfile->name);
     }
 }

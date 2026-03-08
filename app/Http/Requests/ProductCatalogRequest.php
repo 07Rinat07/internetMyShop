@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests;
 
-class ProductCatalogRequest extends CatalogRequest {
-
+class ProductCatalogRequest extends CatalogRequest
+{
     /**
      * С какой сущностью сейчас работаем (товар каталога)
+     *
      * @var array
      */
     protected $entity = [
         'name' => 'product',
-        'table' => 'products'
+        'table' => 'products',
     ];
 
     /**
@@ -18,7 +19,8 @@ class ProductCatalogRequest extends CatalogRequest {
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return parent::authorize();
     }
 
@@ -27,7 +29,8 @@ class ProductCatalogRequest extends CatalogRequest {
      *
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         return parent::rules();
     }
 
@@ -35,24 +38,26 @@ class ProductCatalogRequest extends CatalogRequest {
      * Объединяет дефолтные правила и правила, специфичные для товара
      * для проверки данных при добавлении нового товара
      */
-    protected function createItem() {
+    protected function createItem()
+    {
         $rules = [
             'category_id' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
             'brand_id' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
             'price' => [
                 'required',
                 'numeric',
-                'min:1'
+                'min:1',
             ],
         ];
+
         return array_merge(parent::createItem(), $rules);
     }
 
@@ -60,24 +65,26 @@ class ProductCatalogRequest extends CatalogRequest {
      * Объединяет дефолтные правила и правила, специфичные для товара
      * для проверки данных при обновлении существующего товара
      */
-    protected function updateItem() {
+    protected function updateItem()
+    {
         $rules = [
             'category_id' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
             'brand_id' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
             'price' => [
                 'required',
                 'numeric',
-                'min:1'
+                'min:1',
             ],
         ];
+
         return array_merge(parent::updateItem(), $rules);
     }
 }

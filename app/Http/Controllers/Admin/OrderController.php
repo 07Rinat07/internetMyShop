@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -48,7 +49,12 @@ class OrderController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Order $order) {
-        $order->update($request->all());
+        $validated = $request->validate([
+            'status' => ['required', 'integer', 'in:' . implode(',', OrderStatus::values())],
+        ]);
+
+        $order->update($validated);
+
         return redirect()
             ->route('admin.order.show', ['order' => $order->id])
             ->with('success', 'Заказ был успешно обновлен');

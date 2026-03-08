@@ -90,9 +90,18 @@ const { data, error, pending, refresh } = await useAsyncData('catalog-index', ()
           class="card card--compact stack"
         >
           <span class="pill">Brand</span>
-          <h3>{{ brand.name }}</h3>
+          <h3>
+            <NuxtLink :to="`/brands/${brand.slug}`">
+              {{ brand.name }}
+            </NuxtLink>
+          </h3>
           <p>{{ brand.content || 'No brand description yet.' }}</p>
           <p class="muted mono">slug: {{ brand.slug }}</p>
+          <div class="actions">
+            <NuxtLink class="button button--ghost" :to="`/brands/${brand.slug}`">
+              Open brand
+            </NuxtLink>
+          </div>
         </article>
       </div>
     </template>

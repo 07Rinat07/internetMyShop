@@ -14,16 +14,16 @@ class BasketCheckoutTest extends TestCase {
     use RefreshDatabase;
 
     public function test_checkout_ignores_client_side_amount_status_and_user_id() {
-        $category = factory(Category::class)->create([
+        $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Checkout category',
             'slug' => 'checkout-category',
         ]);
-        $brand = factory(Brand::class)->create([
+        $brand = Brand::factory()->create([
             'name' => 'Checkout brand',
             'slug' => 'checkout-brand',
         ]);
-        $product = factory(Product::class)->create([
+        $product = Product::factory()->create([
             'category_id' => $category->id,
             'brand_id' => $brand->id,
             'name' => 'Checkout product',

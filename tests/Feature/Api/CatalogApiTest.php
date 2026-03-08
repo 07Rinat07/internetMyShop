@@ -8,23 +8,25 @@ use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CatalogApiTest extends TestCase {
+class CatalogApiTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_catalog_index_returns_categories_and_brands() {
-        $category = factory(Category::class)->create([
+    public function test_catalog_index_returns_categories_and_brands()
+    {
+        $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Категория',
             'slug' => 'category-root',
         ]);
 
-        factory(Category::class)->create([
+        Category::factory()->create([
             'parent_id' => $category->id,
             'name' => 'Подкатегория',
             'slug' => 'category-child',
         ]);
 
-        $brand = factory(Brand::class)->create([
+        $brand = Brand::factory()->create([
             'name' => 'Бренд',
             'slug' => 'brand-root',
         ]);
@@ -40,17 +42,18 @@ class CatalogApiTest extends TestCase {
             ]);
     }
 
-    public function test_category_endpoint_returns_paginated_products() {
-        $category = factory(Category::class)->create([
+    public function test_category_endpoint_returns_paginated_products()
+    {
+        $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Категория',
             'slug' => 'api-category',
         ]);
-        $brand = factory(Brand::class)->create([
+        $brand = Brand::factory()->create([
             'name' => 'Бренд',
             'slug' => 'api-brand',
         ]);
-        $product = factory(Product::class)->create([
+        $product = Product::factory()->create([
             'category_id' => $category->id,
             'brand_id' => $brand->id,
             'name' => 'Товар API',
@@ -70,17 +73,18 @@ class CatalogApiTest extends TestCase {
             ]);
     }
 
-    public function test_brand_endpoint_returns_paginated_products() {
-        $category = factory(Category::class)->create([
+    public function test_brand_endpoint_returns_paginated_products()
+    {
+        $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Категория',
             'slug' => 'api-category-brand',
         ]);
-        $brand = factory(Brand::class)->create([
+        $brand = Brand::factory()->create([
             'name' => 'Бренд API',
             'slug' => 'api-brand-show',
         ]);
-        $product = factory(Product::class)->create([
+        $product = Product::factory()->create([
             'category_id' => $category->id,
             'brand_id' => $brand->id,
             'name' => 'Товар бренда',
@@ -95,17 +99,18 @@ class CatalogApiTest extends TestCase {
             ->assertJsonPath('data.products.0.slug', $product->slug);
     }
 
-    public function test_product_endpoint_returns_product_detail() {
-        $category = factory(Category::class)->create([
+    public function test_product_endpoint_returns_product_detail()
+    {
+        $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Категория',
             'slug' => 'api-category-detail',
         ]);
-        $brand = factory(Brand::class)->create([
+        $brand = Brand::factory()->create([
             'name' => 'Бренд detail',
             'slug' => 'api-brand-detail',
         ]);
-        $product = factory(Product::class)->create([
+        $product = Product::factory()->create([
             'category_id' => $category->id,
             'brand_id' => $brand->id,
             'name' => 'Детальный товар',

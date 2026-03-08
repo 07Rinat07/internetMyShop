@@ -8,13 +8,10 @@ import type {
 
 export function useAuth() {
   const api = useApiClient()
-  const token = useCookie<string | null>('access_token', {
-    sameSite: 'lax',
-    secure: !import.meta.dev,
-  })
   const user = useState<AuthUser | null>('auth-user', () => null)
+  const resolved = useState<boolean>('auth-resolved', () => false)
   const busy = useState<boolean>('auth-busy', () => false)
-  const loggedIn = computed(() => Boolean(token.value))
+  const loggedIn = computed(() => Boolean(user.value))
 
   async function consumeAuthResponse(endpoint: string, payload: LoginPayload | RegisterPayload) {
     busy.value = true
@@ -25,8 +22,8 @@ export function useAuth() {
         body: payload,
       })
 
-      token.value = response.data.access_token
       user.value = response.data.user
+      resolved.value = true
 
       return response.data.user
     } finally {
@@ -42,49 +39,44 @@ export function useAuth() {
     return await consumeAuthResponse('/auth/register', payload)
   }
 
-  async function fetchMe() {
-    if (!token.value) {
-      user.value = null
-      return null
-    }
-
-    const response = await api<ApiEnvelope<AuthUser>>('/auth/me')
-    user.value = response.data
-
-    return response.data
-  }
-
-  async function ensureUser() {
-    if (user.value) {
+  async function fetchMe(force = false) {
+    if (resolved.value && !force) {
       return user.value
     }
 
     try {
-      return await fetchMe()
+      const response = await api<ApiEnvelope<AuthUser>>('/auth/me')
+      user.value = response.data
+
+      return response.data
     } catch {
-      token.value = null
       user.value = null
       return null
+    } finally {
+      resolved.value = true
     }
   }
 
+  async function ensureUser() {
+    return await fetchMe()
+  }
+
   async function logout() {
-    if (token.value) {
-      try {
-        await api('/auth/logout', { method: 'POST' })
-      } catch {
-      }
+    try {
+      await api('/auth/logout', { method: 'POST' })
+    } catch {
+      // Local auth state still has to be cleared if the backend token is already gone.
     }
 
-    token.value = null
     user.value = null
+    resolved.value = true
 
     await navigateTo('/login')
   }
 
   return {
-    token,
     user,
+    resolved,
     busy,
     loggedIn,
     login,

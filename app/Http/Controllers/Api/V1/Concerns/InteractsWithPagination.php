@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1\Concerns;
 
-trait InteractsWithPagination {
-    protected function paginationMeta($paginator) {
+trait InteractsWithPagination
+{
+    protected function paginationMeta($paginator)
+    {
         return [
             'current_page' => $paginator->currentPage(),
             'last_page' => $paginator->lastPage(),
@@ -12,7 +14,8 @@ trait InteractsWithPagination {
         ];
     }
 
-    protected function paginationLinks($paginator) {
+    protected function paginationLinks($paginator)
+    {
         return [
             'first' => $paginator->url(1),
             'last' => $paginator->url($paginator->lastPage()),

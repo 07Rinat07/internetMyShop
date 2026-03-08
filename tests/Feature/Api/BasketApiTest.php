@@ -5,15 +5,18 @@ namespace Tests\Feature\Api;
 use App\Models\Basket;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class BasketApiTest extends TestCase {
+class BasketApiTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_add_item_endpoint_creates_basket_and_returns_payload() {
+    public function test_add_item_endpoint_creates_basket_and_returns_payload()
+    {
         $product = $this->createProduct('basket-product');
 
         $response = $this
@@ -31,7 +34,8 @@ class BasketApiTest extends TestCase {
         $this->assertTrue($response->headers->has('Set-Cookie'));
     }
 
-    public function test_show_update_and_remove_basket_item() {
+    public function test_show_update_and_remove_basket_item()
+    {
         $product = $this->createProduct('basket-update-product');
         $basket = Basket::create();
         $basket->products()->attach($product->id, ['quantity' => 1]);
@@ -39,7 +43,7 @@ class BasketApiTest extends TestCase {
         $showResponse = $this
             ->withCredentials()
             ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string)$basket->id)
+            ->withUnencryptedCookie('basket_id', (string) $basket->id)
             ->getJson('/api/v1/basket');
 
         $showResponse->assertOk()
@@ -48,7 +52,7 @@ class BasketApiTest extends TestCase {
         $updateResponse = $this
             ->withCredentials()
             ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string)$basket->id)
+            ->withUnencryptedCookie('basket_id', (string) $basket->id)
             ->patchJson('/api/v1/basket/items/'.$product->id, [
                 'quantity' => 4,
             ]);
@@ -59,15 +63,16 @@ class BasketApiTest extends TestCase {
         $deleteResponse = $this
             ->withCredentials()
             ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string)$basket->id)
+            ->withUnencryptedCookie('basket_id', (string) $basket->id)
             ->deleteJson('/api/v1/basket/items/'.$product->id);
 
         $deleteResponse->assertOk()
             ->assertJsonPath('data.positions', 0);
     }
 
-    public function test_checkout_endpoint_creates_order_and_clears_basket() {
-        $user = factory(User::class)->create();
+    public function test_checkout_endpoint_creates_order_and_clears_basket()
+    {
+        $user = User::factory()->create();
         $token = $user->createToken('basket-api-test')->plainTextToken;
         $product = $this->createProduct('basket-checkout-product', 1500);
         $basket = Basket::create();
@@ -77,7 +82,7 @@ class BasketApiTest extends TestCase {
             ->withCredentials()
             ->withToken($token)
             ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string)$basket->id)
+            ->withUnencryptedCookie('basket_id', (string) $basket->id)
             ->postJson('/api/v1/basket/checkout', [
                 'name' => 'Api Customer',
                 'email' => 'api-customer@example.com',
@@ -91,22 +96,26 @@ class BasketApiTest extends TestCase {
             ->assertJsonPath('data.status.code', 0)
             ->assertJsonPath('data.items.0.quantity', 2);
 
+        /** @var Order $order */
+        $order = $user->fresh()->orders()->firstOrFail();
+
         $this->assertSame(0, $basket->fresh()->products()->count());
-        $this->assertEquals($user->id, $user->fresh()->orders()->first()->user_id);
+        $this->assertEquals($user->id, $order->user_id);
     }
 
-    private function createProduct($slug, $price = 1200) {
-        $category = factory(Category::class)->create([
+    private function createProduct(string $slug, int $price = 1200): Product
+    {
+        $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Basket category '.$slug,
             'slug' => 'basket-category-'.$slug,
         ]);
-        $brand = factory(Brand::class)->create([
+        $brand = Brand::factory()->create([
             'name' => 'Basket brand '.$slug,
             'slug' => 'basket-brand-'.$slug,
         ]);
 
-        return factory(Product::class)->create([
+        return Product::factory()->create([
             'category_id' => $category->id,
             'brand_id' => $brand->id,
             'name' => 'Basket product '.$slug,

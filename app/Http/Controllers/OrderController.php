@@ -7,6 +7,8 @@ use App\Models\Order;
 class OrderController extends Controller {
 
     public function index() {
+        $this->authorize('viewAny', Order::class);
+
         $orders = Order::whereUserId(auth()->user()->id)
             ->orderBy('created_at', 'desc')
             ->paginate(5);
@@ -15,10 +17,8 @@ class OrderController extends Controller {
     }
 
     public function show(Order $order) {
-        if ((int)$order->user_id !== (int)auth()->id()) {
-            // можно просматривать только свои заказы
-            abort(404);
-        }
+        $this->authorize('view', $order);
+
         $statuses = Order::STATUSES;
         return view('user.order.show', compact('order', 'statuses'));
     }

@@ -2,9 +2,7 @@
 const auth = useAuth()
 const basket = useBasket()
 
-if (auth.token.value && !auth.user.value) {
-  await callOnce('auth-bootstrap', () => auth.ensureUser())
-}
+await callOnce('auth-bootstrap', () => auth.ensureUser())
 
 if (import.meta.client && !basket.initialized.value) {
   basket.load().catch(() => null)

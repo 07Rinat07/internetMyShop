@@ -4,15 +4,16 @@ namespace App\Http\Requests;
 
 use App\Rules\CategoryParent;
 
-class CategoryCatalogRequest extends CatalogRequest {
-
+class CategoryCatalogRequest extends CatalogRequest
+{
     /**
      * С какой сущностью сейчас работаем (категория каталога)
+     *
      * @var array
      */
     protected $entity = [
         'name' => 'category',
-        'table' => 'categories'
+        'table' => 'categories',
     ];
 
     /**
@@ -20,7 +21,8 @@ class CategoryCatalogRequest extends CatalogRequest {
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return parent::authorize();
     }
 
@@ -29,7 +31,8 @@ class CategoryCatalogRequest extends CatalogRequest {
      *
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         return parent::rules();
     }
 
@@ -37,13 +40,15 @@ class CategoryCatalogRequest extends CatalogRequest {
      * Объединяет дефолтные правила и правила, специфичные для категории
      * для проверки данных при добавлении новой категории
      */
-    protected function createItem() {
+    protected function createItem()
+    {
         $rules = [
             'parent_id' => [
                 'required',
                 'regex:~^[0-9]+$~',
             ],
         ];
+
         return array_merge(parent::createItem(), $rules);
     }
 
@@ -51,7 +56,8 @@ class CategoryCatalogRequest extends CatalogRequest {
      * Объединяет дефолтные правила и правила, специфичные для категории
      * для проверки данных при обновлении существующей категории
      */
-    protected function updateItem() {
+    protected function updateItem()
+    {
         // получаем объект модели категории из маршрута: admin/category/{category}
         $model = $this->route('category');
         $rules = [
@@ -59,9 +65,10 @@ class CategoryCatalogRequest extends CatalogRequest {
                 'required',
                 'regex:~^[0-9]+$~',
                 // задаем правило, чтобы категорию нельзя было поместить внутрь себя
-                new CategoryParent($model)
+                new CategoryParent($model),
             ],
         ];
+
         return array_merge(parent::updateItem(), $rules);
     }
 }

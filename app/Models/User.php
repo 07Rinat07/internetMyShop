@@ -2,14 +2,27 @@
 
 namespace App\Models;
 
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Carbon;
-use Illuminate\Auth\Notifications\ResetPassword;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable {
-    use HasApiTokens, Notifiable;
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property bool $admin
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Profile> $profiles
+ */
+class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -35,27 +48,13 @@ class User extends Authenticatable {
      * @var array
      */
     protected $casts = [
+        'admin' => 'boolean',
         'email_verified_at' => 'datetime',
     ];
 
-    /**
-     * Преобразует дату и время регистрации пользователя из UTC в Europe/Moscow
-     *
-     * @param $value
-     * @return \Carbon\Carbon|false
-     */
-    public function getCreatedAtAttribute($value) {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $value)->timezone('Europe/Moscow');
-    }
-
-    /**
-     * Преобразует дату и время обновления пользователя из UTC в Europe/Moscow
-     *
-     * @param $value
-     * @return \Carbon\Carbon|false
-     */
-    public function getUpdatedAtAttribute($value) {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $value)->timezone('Europe/Moscow');
+    public function isAdmin(): bool
+    {
+        return (bool) $this->admin;
     }
 
     /**
@@ -63,7 +62,8 @@ class User extends Authenticatable {
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function orders() {
+    public function orders()
+    {
         return $this->hasMany(Order::class);
     }
 
@@ -72,16 +72,18 @@ class User extends Authenticatable {
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function profiles() {
+    public function profiles()
+    {
         return $this->hasMany(Profile::class);
     }
 
-    public function sendPasswordResetNotification($token) {
+    public function sendPasswordResetNotification($token)
+    {
         $notification = new ResetPassword($token);
         $notification->createUrlUsing(function ($user, $token) {
             return url(route('user.password.reset', [
                 'token' => $token,
-                'email' => $user->email
+                'email' => $user->email,
             ]));
         });
         $this->notify($notification);

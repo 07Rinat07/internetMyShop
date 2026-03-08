@@ -4,8 +4,13 @@ namespace App\Http\Resources\Api\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CategoryTreeResource extends JsonResource {
-    public function toArray($request) {
+/**
+ * @mixin \App\Models\Category
+ */
+class CategoryTreeResource extends JsonResource
+{
+    public function toArray($request)
+    {
         return [
             'id' => $this->id,
             'parent_id' => $this->parent_id,

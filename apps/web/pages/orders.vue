@@ -82,6 +82,7 @@ async function loadOrder(orderId: number) {
           v-for="order in data.data"
           :key="order.id"
           class="list-item"
+          data-testid="order-list-item"
         >
           <div class="list-item__header">
             <div>
@@ -91,6 +92,7 @@ async function loadOrder(orderId: number) {
             <button
               class="button"
               :class="selectedOrderId === order.id ? 'button--accent' : 'button--ghost'"
+              data-testid="order-view-details"
               type="button"
               @click="loadOrder(order.id)"
             >
@@ -107,7 +109,7 @@ async function loadOrder(orderId: number) {
       </div>
     </article>
 
-    <article class="card stack">
+    <article class="card stack" data-testid="order-detail">
       <div>
         <span class="eyebrow">Detail</span>
         <h2>Selected order</h2>

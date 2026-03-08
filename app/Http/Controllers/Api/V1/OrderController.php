@@ -8,10 +8,19 @@ use App\Http\Resources\Api\V1\OrderDetailResource;
 use App\Http\Resources\Api\V1\OrderSummaryResource;
 use App\Models\Order;
 
-class OrderController extends Controller {
+class OrderController extends Controller
+{
     use InteractsWithPagination;
 
-    public function index() {
+    public function __construct()
+    {
+        $this->authorizeResource(Order::class, 'order', ['except' => ['index']]);
+    }
+
+    public function index()
+    {
+        $this->authorize('viewAny', Order::class);
+
         $orders = auth()->user()->orders()
             ->withCount('items')
             ->orderBy('created_at', 'desc')
@@ -24,19 +33,14 @@ class OrderController extends Controller {
         ]);
     }
 
-    public function show(Order $order) {
-        $order = $this->ownedOrder($order)->load(['items.product']);
+    public function show(Order $order)
+    {
+        $this->authorize('view', $order);
+
+        $order = $order->load(['items.product']);
 
         return response()->json([
             'data' => (new OrderDetailResource($order))->resolve(),
         ]);
-    }
-
-    private function ownedOrder(Order $order) {
-        if ((int)$order->user_id !== (int)auth()->id()) {
-            abort(404);
-        }
-
-        return $order;
     }
 }
