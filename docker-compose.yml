@@ -23,6 +23,7 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       CHOKIDAR_USEPOLLING: "true"
+      IN_DOCKER: "true"
       NUXT_API_BASE_INTERNAL: http://app:8000/api/v1
     volumes:
       - ./apps/web:/app

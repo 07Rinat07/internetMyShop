@@ -1,70 +1,212 @@
 # Architecture
 
-## Current stage
+## System overview
 
-This repository is in the fourth stage of an API-first refactor:
+`internetMyShop` is a modular Laravel monolith with three active delivery layers:
 
-- legacy Blade storefront remains available;
-- `api/v1` now covers catalog, basket, checkout, auth, profiles and order history;
-- external API clients use Sanctum personal access tokens;
-- the Nuxt frontend now uses a BFF layer with `HttpOnly` cookies instead of client-readable bearer token storage;
-- a separate `Nuxt 4` frontend exists under `apps/web` and already consumes auth, catalog, brand detail, product detail, basket, checkout, profiles and orders through that BFF layer;
-- critical ownership and mass-assignment bugs are fixed before deeper migration;
-- policy and gate authorization is in place for profile ownership, order ownership and admin access;
-- catalog search and filtering are being moved into a dedicated query and filter layer under `app/Domain/Catalog`;
-- frontend coverage now includes `Vitest` unit tests and a `Playwright` e2e flow over isolated Laravel/Nuxt test servers;
-- backend quality gates now include `Pint`, `Larastan/PHPStan`, `PHPUnit`, and an OpenAPI route-contract check;
-- backend runtime is now Laravel 12 on PHP 8.4 for both local verification and Docker.
+1. `Blade storefront` for the legacy and compatibility-facing web UI.
+2. `REST API /api/v1` for external and decoupled frontend clients.
+3. `Nuxt 4 frontend` in `apps/web` that talks to the backend through a `BFF` layer.
 
-## Target direction
+The admin panel is implemented with `MoonShine` and runs inside the same Laravel application under `/admin`.
 
-- architecture style: modular monolith, not microservices;
-- backend: Laravel API with versioned endpoints and explicit domain boundaries;
-- frontend: Nuxt 4 application in `apps/web` with BFF routing for browser auth;
-- documentation: OpenAPI spec under `docs/openapi.yaml`, with contract validation against registered routes;
-- tests: feature tests for web and API flows plus frontend unit and e2e coverage.
+## Runtime topology
+
+### Local development
+
+- backend: Laravel 12 on PHP 8.4
+- database: sqlite (`database/database.sqlite`)
+- legacy storefront: served by Laravel
+- admin: MoonShine inside Laravel
+- separate frontend: Nuxt dev server on port `3000`
+
+### Docker development
+
+- backend: Laravel in `app` container
+- frontend: Nuxt dev server in `web` container
+- database: MySQL 8 in `db` container
+
+Important:
+
+- the current Docker stack is a development stack;
+- it uses `php artisan serve` and `nuxt dev`;
+- it is not the target production runtime.
+
+## Architecture diagram
+
+```text
+Browser
+  -> Blade storefront
+      -> Laravel controllers
+      -> Actions / Domain / Policies / Eloquent
+      -> sqlite locally or MySQL in Docker
+
+Browser
+  -> Nuxt frontend
+      -> Nuxt BFF (/bff)
+          -> Laravel API /api/v1
+          -> Sanctum token hidden behind HttpOnly cookie
+
+Administrator
+  -> MoonShine /admin
+      -> same Laravel app
+      -> same models and database
+
+Storefront content manager
+  -> MoonShine resource "Site Content"
+      -> site_contents table
+      -> runtime translation override middleware
+```
+
+## Delivery layers
+
+### Blade storefront
+
+The Blade storefront remains active because it still covers:
+
+- the public catalog;
+- basket and checkout;
+- the user account;
+- SEO-friendly storefront routes;
+- direct access to MoonShine-adjacent admin flows from the same Laravel app.
+
+Blade is treated as a compatibility layer, not the long-term frontend target.
+
+### API layer
+
+The API lives under `/api/v1` and currently covers:
+
+- auth;
+- catalog;
+- basket;
+- checkout;
+- profiles;
+- orders.
+
+The API contract is maintained in `docs/openapi.yaml` and validated against registered routes by tests.
+
+### Nuxt frontend and BFF
+
+`apps/web` is the target frontend direction.
+
+Key rules:
+
+- browser requests should go through the Nuxt BFF;
+- the BFF forwards requests to Laravel API;
+- access tokens are stored behind `HttpOnly` cookies rather than exposed to browser JavaScript;
+- basket state is synchronized through cookies and backend responses.
+
+## Admin architecture
+
+The old custom admin UI has been removed.
+The project now uses `MoonShine` as the single admin panel.
+
+MoonShine currently manages:
+
+- categories;
+- brands;
+- products;
+- orders;
+- users;
+- pages;
+- storefront content text overrides.
+
+Admin access is protected by the `access-admin` gate and enforced through middleware in the backend.
+
+## Content management model
+
+Storefront text is no longer only file-based.
+
+The project now has a dual-layer content model:
+
+1. translation files in `resources/lang/{locale}/site.php` act as defaults;
+2. records in `site_contents` override those translations at runtime.
+
+This is applied through `ApplySiteContentTranslations` middleware and `SiteContentService`.
+
+Benefits:
+
+- the site remains functional even if the table is empty;
+- admin can override texts without changing files;
+- Russian and English content can be managed independently.
 
 ## Domain boundaries
 
-The preferred module split is now:
+The preferred logical split is:
 
-- `app/Domain/Catalog`
-- `app/Domain/Accounts`
-- `app/Domain/Orders`
-- `app/Domain/Admin`
-- `app/Domain/Content`
-- `app/Domain/Basket`
+- `Catalog`
+- `Basket`
+- `Accounts`
+- `Orders`
+- `Admin`
+- `Content`
 
-Inside each module, new work should prefer:
+Within those modules, new work should prefer:
 
 - `Actions` for transactional writes;
-- `Queries` for read-side composition and search;
-- `Policies` for ownership and permissions;
-- `DTO` or `Data` objects when payload shape becomes non-trivial;
-- `Http` only for delivery concerns.
+- `Queries` and `Filters` for read composition;
+- `Policies` and `Gates` for authorization;
+- `Resources` for API output contracts;
+- `Services` only where orchestration is clearer outside controllers or models.
 
-## Next refactor steps
+## Security boundaries
 
-1. Decide whether to keep cookie baskets as-is or merge them into a server-side customer basket after login.
-2. Expand API coverage to admin, search and CMS/page content flows.
-3. Add more frontend e2e scenarios around profile CRUD, guest checkout and order history.
-4. Replace the proxy-managed bearer token with a full first-party session and CSRF flow if the frontend remains same-origin.
-5. Add OpenAPI generation directly from PHP attributes so the spec is emitted from backend code instead of being maintained manually.
-6. Expand admin, CMS, upload and seed consistency coverage to match the customer API quality bar.
+The backend remains the primary security boundary.
 
-## Engineering process
+Core security rules:
 
-The repository now treats documentation, review, and code conventions as first-class deliverables.
-The active standards live in:
+- ownership must be enforced in backend code, not only in UI;
+- client-sent protected fields must never be trusted;
+- basket and checkout totals are server-derived;
+- admin access is backend-guarded;
+- upload handling must validate MIME, path and storage;
+- browser auth should remain `HttpOnly`/BFF-based;
+- security headers are added to web responses.
 
-- `CONTRIBUTING.md`
-- `docs/development-standards.md`
-- `docs/review-checklist.md`
+## Data and persistence
 
-This means each future change should ship with:
+### Local
 
-- code aligned to Laravel and Nuxt conventions;
-- tests or an explicit reason why coverage is not practical;
-- static analysis and formatting green in the relevant scope;
-- documentation updates where behavior or contracts changed;
-- a short self-review covering correctness, security, regressions, and residual risks.
+- sqlite is the default local database;
+- it keeps setup friction low and makes local verification fast.
+
+### Docker and production-like environments
+
+- MySQL is used for containerized runs and recommended server deployment;
+- image paths and admin uploads are stored in the application database and public storage.
+
+## Quality and verification model
+
+The repository treats documentation and tests as first-class parts of architecture.
+
+Current verification layers:
+
+- `PHPUnit` for backend behavior;
+- `Larastan/PHPStan` for backend static analysis;
+- `Pint` for formatting;
+- `Vitest` for Nuxt unit logic;
+- `Playwright` for end-to-end browser flow;
+- OpenAPI route contract tests.
+
+## Production deployment direction
+
+Recommended production topology:
+
+- `Nginx`
+- `PHP-FPM 8.4`
+- `MySQL 8`
+- `Node 24`
+- `systemd` or process supervisor for the Nuxt server
+
+Detailed operational instructions live in `docs/hosting-deployment.md`.
+
+## Documentation contract
+
+This architecture document must be updated when changes affect:
+
+- frontend/backend boundaries;
+- auth or session flow;
+- admin model;
+- content model;
+- runtime topology;
+- deployment assumptions.

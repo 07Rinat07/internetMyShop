@@ -1,3 +1,5 @@
+const inDocker = process.env.IN_DOCKER === 'true'
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
@@ -23,6 +25,6 @@ export default defineNuxtConfig({
   },
   typescript: {
     strict: true,
-    typeCheck: true,
+    typeCheck: !inDocker,
   },
 })

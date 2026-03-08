@@ -1,9 +1,9 @@
-@extends('layout.site')
+@extends('layout.site', ['title' => __('Confirm Password')])
 
 @section('content')
 <div class="row justify-content-center">
     <div class="col-12">
-        <div class="card">
+        <div class="card auth-card">
             <div class="card-header">{{ __('Confirm Password') }}</div>
 
             <div class="card-body">

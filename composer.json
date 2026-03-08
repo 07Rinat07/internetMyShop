@@ -6,18 +6,25 @@
         "framework",
         "laravel"
     ],
-    "license": "MIT",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Rinat Sarmuldin",
+            "email": "ura07srr@gmail.com"
+        }
+    ],
     "require": {
         "php": "^8.3",
+        "andrewdanilov/php-lingua-stem-ru": "^1.0",
         "guzzlehttp/guzzle": "^7.10",
         "intervention/image": "^3.11.7",
         "intervention/image-laravel": "^1.5.7",
-        "andrewdanilov/php-lingua-stem-ru": "^1.0",
         "laravel-lang/lang": "^15.28",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10",
-        "laravel/ui": "^4.6"
+        "laravel/ui": "^4.6",
+        "moonshine/moonshine": "^4.8"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.1",
@@ -64,14 +71,64 @@
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
         ],
+        "app:local:prepare": [
+            "@php scripts/prepare-local-environment.php"
+        ],
+        "app:local:setup": [
+            "@app:local:prepare",
+            "@php artisan key:generate --ansi --force",
+            "@php artisan migrate --force --no-interaction",
+            "@php artisan db:seed --force --no-interaction",
+            "@php artisan storage:link --force"
+        ],
+        "app:local:refresh": [
+            "@app:local:prepare",
+            "@php artisan migrate:fresh --seed --force --no-interaction",
+            "@php artisan storage:link --force"
+        ],
+        "app:local:seed:content": [
+            "@app:local:prepare",
+            "@php artisan db:seed --class=\"Database\\Seeders\\StorefrontSiteContentSeeder\" --force --no-interaction"
+        ],
+        "app:local:serve": [
+            "@php artisan serve --host=127.0.0.1 --port=8000"
+        ],
+        "app:local:clear": [
+            "@php artisan optimize:clear"
+        ],
+        "app:docker:prepare": [
+            "@php scripts/prepare-docker-environment.php"
+        ],
+        "app:docker:up": [
+            "@app:docker:prepare",
+            "docker compose up -d --build"
+        ],
+        "app:docker:down": [
+            "docker compose down"
+        ],
+        "app:docker:logs": [
+            "docker compose logs -f app"
+        ],
+        "app:docker:migrate": [
+            "docker compose exec app php artisan migrate --force --no-interaction"
+        ],
+        "app:docker:seed": [
+            "docker compose exec app php artisan db:seed --force --no-interaction"
+        ],
+        "app:docker:seed:content": [
+            "docker compose exec app php artisan db:seed --class=\"Database\\Seeders\\StorefrontSiteContentSeeder\" --force --no-interaction"
+        ],
+        "app:docker:refresh": [
+            "docker compose exec app php artisan migrate:fresh --seed --force --no-interaction"
+        ],
         "lint": [
-            "vendor/bin/pint --test app/Actions app/Domain app/Enums app/Http/Controllers/Api/V1 app/Http/Middleware/Administrator.php app/Http/Requests app/Http/Resources/Api/V1 app/Models/User.php app/Models/Profile.php app/Models/Order.php app/Models/Product.php app/Providers/AppServiceProvider.php app/Providers/AuthServiceProvider.php routes/api.php tests/Feature/Api tests/Feature/Admin tests/Feature/ProductSearchTest.php tests/Feature/ProfileAuthorizationTest.php tests/Feature/OpenApiContractTest.php"
+            "@php vendor/bin/pint --test app/Actions app/Domain app/Enums app/Http/Controllers/Api/V1 app/Http/Middleware/Administrator.php app/Http/Middleware/ApplySiteContentTranslations.php app/Http/Middleware/SetLocale.php app/Http/Middleware/SecurityHeaders.php app/Http/Requests app/Http/Resources/Api/V1 app/Models/User.php app/Models/Profile.php app/Models/Order.php app/Models/Product.php app/Models/SiteContent.php app/Providers/AppServiceProvider.php app/Providers/AuthServiceProvider.php app/Providers/MoonShineServiceProvider.php app/Services/SiteContent app/Support/SiteContentDefaults.php database/seeders/DatabaseSeeder.php database/seeders/StorefrontSiteContentSeeder.php routes/api.php tests/Feature/Api tests/Feature/Admin tests/Feature/ProductSearchTest.php tests/Feature/ProfileAuthorizationTest.php tests/Feature/OpenApiContractTest.php tests/Feature/SiteContentOverrideTest.php tests/Feature/UserNavigationActionsTest.php scripts/prepare-local-environment.php scripts/prepare-docker-environment.php"
         ],
         "format": [
-            "vendor/bin/pint app/Actions app/Domain app/Enums app/Http/Controllers/Api/V1 app/Http/Middleware/Administrator.php app/Http/Requests app/Http/Resources/Api/V1 app/Models/User.php app/Models/Profile.php app/Models/Order.php app/Models/Product.php app/Providers/AppServiceProvider.php app/Providers/AuthServiceProvider.php routes/api.php tests/Feature/Api tests/Feature/Admin tests/Feature/ProductSearchTest.php tests/Feature/ProfileAuthorizationTest.php tests/Feature/OpenApiContractTest.php"
+            "@php vendor/bin/pint app/Actions app/Domain app/Enums app/Http/Controllers/Api/V1 app/Http/Middleware/Administrator.php app/Http/Middleware/ApplySiteContentTranslations.php app/Http/Middleware/SetLocale.php app/Http/Middleware/SecurityHeaders.php app/Http/Requests app/Http/Resources/Api/V1 app/Models/User.php app/Models/Profile.php app/Models/Order.php app/Models/Product.php app/Models/SiteContent.php app/Providers/AppServiceProvider.php app/Providers/AuthServiceProvider.php app/Providers/MoonShineServiceProvider.php app/Services/SiteContent app/Support/SiteContentDefaults.php database/seeders/DatabaseSeeder.php database/seeders/StorefrontSiteContentSeeder.php routes/api.php tests/Feature/Api tests/Feature/Admin tests/Feature/ProductSearchTest.php tests/Feature/ProfileAuthorizationTest.php tests/Feature/OpenApiContractTest.php tests/Feature/SiteContentOverrideTest.php tests/Feature/UserNavigationActionsTest.php scripts/prepare-local-environment.php scripts/prepare-docker-environment.php"
         ],
         "analyse": [
-            "vendor/bin/phpstan analyse --memory-limit=1G"
+            "@php vendor/bin/phpstan analyse --memory-limit=1G"
         ],
         "test": [
             "@php artisan test"

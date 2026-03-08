@@ -17,7 +17,7 @@ Before a change is considered complete, it must include:
 
 - updated code that follows project conventions;
 - tests for the changed behavior, or a short written reason why a test is not practical;
-- documentation updates if the change affects setup, architecture, API contracts, auth, seed data, or runtime assumptions;
+- documentation updates in the same change if the change affects setup, architecture, API contracts, auth, seed data, deployment, runtime assumptions, admin behavior, or content management;
 - a short self-review covering risks, regressions, and follow-up work.
 
 ## Documentation rules
@@ -35,8 +35,12 @@ Use the following locations:
 - `README.md` for setup, run, and high-level project usage;
 - `docs/architecture.md` for architectural direction and boundaries;
 - `docs/openapi.yaml` for API contracts;
+- `docs/hosting-deployment.md` for VPS and hosting deployment instructions;
+- `docs/documentation-maintenance.md` for the documentation update matrix;
 - `docs/development-standards.md` for coding and documentation conventions;
 - `docs/review-checklist.md` for review expectations.
+
+Documentation drift is treated as an incomplete change.
 
 ## Comment and annotation rules
 

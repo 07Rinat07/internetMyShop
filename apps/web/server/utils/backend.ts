@@ -12,7 +12,7 @@ import {
 
 const accessTokenCookie = 'ims_access_token'
 const basketCookie = 'ims_basket_id'
-const thirtyDaysInSeconds = 60 * 60 * 24 * 30
+const twoHoursInSeconds = 60 * 60 * 2
 const oneYearInSeconds = 60 * 60 * 24 * 365
 
 type ProxyOptions = {
@@ -49,7 +49,7 @@ function buildBackendHeaders(
     }
   }
 
-  if (options.includeBasket !== false) {
+  if (options.includeBasket === true) {
     const basketId = getCookie(event, basketCookie)
 
     if (basketId) {
@@ -66,7 +66,7 @@ export function setAccessTokenCookie(event: H3Event, token: string) {
     sameSite: 'lax',
     secure: isSecureCookie(),
     path: '/',
-    maxAge: thirtyDaysInSeconds,
+    maxAge: twoHoursInSeconds,
   })
 }
 
@@ -132,6 +132,9 @@ export async function proxyBackendJson(
 
   syncBasketCookie(event, response.headers)
   setResponseStatus(event, response.status)
+  if (response.status === 401) {
+    clearAccessTokenCookie(event)
+  }
 
   return response._data
 }

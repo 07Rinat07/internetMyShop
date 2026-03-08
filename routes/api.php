@@ -18,12 +18,25 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login'])->name('auth.login');
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
-        Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+        Route::middleware('ability:auth:self')->group(function () {
+            Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
+            Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+            Route::post('auth/logout-all', [AuthController::class, 'logoutAll'])->name('auth.logout-all');
+        });
 
-        Route::apiResource('profiles', ProfileController::class)->except(['create', 'edit']);
-        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::middleware('ability:profile:read')->group(function () {
+            Route::get('profiles', [ProfileController::class, 'index'])->name('profiles.index');
+            Route::get('profiles/{profile}', [ProfileController::class, 'show'])->name('profiles.show');
+        });
+        Route::middleware('ability:profile:write')->group(function () {
+            Route::post('profiles', [ProfileController::class, 'store'])->name('profiles.store');
+            Route::match(['PUT', 'PATCH'], 'profiles/{profile}', [ProfileController::class, 'update'])->name('profiles.update');
+            Route::delete('profiles/{profile}', [ProfileController::class, 'destroy'])->name('profiles.destroy');
+        });
+        Route::middleware('ability:orders:read')->group(function () {
+            Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+            Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        });
     });
 
     Route::get('catalog', [CatalogController::class, 'index'])->name('catalog.index');

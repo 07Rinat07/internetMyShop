@@ -1,5 +1,7 @@
-<a class="nav-link @if ($positions) text-success @endif"
+<a class="utility-link utility-link--cart @if ($positions) is-filled @endif"
    href="{{ route('basket.index') }}">
-    Корзина
-    @if ($positions) ({{ $positions }}) @endif
+    <span>{{ $positions ? __('site.basket.cart_count', ['count' => $positions]) : __('site.basket.cart_status') }}</span>
+    @if ($positions)
+        <span class="utility-link__badge">{{ $positions }}</span>
+    @endif
 </a>

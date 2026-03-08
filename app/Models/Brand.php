@@ -40,6 +40,10 @@ class Brand extends Model {
      * просто получаем 5 брендов с наибольшим кол-вом товаров
      */
     public static function popular() {
-        return self::withCount('products')->orderByDesc('products_count')->limit(5)->get();
+        return self::withCount('products')
+            ->orderByDesc('products_count')
+            ->orderBy('name')
+            ->limit(5)
+            ->get();
     }
 }

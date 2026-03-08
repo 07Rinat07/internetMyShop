@@ -22,17 +22,6 @@ class ProfileController extends Controller {
     }
 
     /**
-     * Возвращает данные профиля в формате JSON
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function profile() {
-        // TODO: здесь нужна какая-никакая проверка
-        $profile = self::findOrFail();
-        return response()->json($profile);
-    }
-
-    /**
      * Показывает форму для создания профиля
      *
      * @return \Illuminate\Http\Response
@@ -52,7 +41,7 @@ class ProfileController extends Controller {
 
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
-            ->with('success', 'Новый профиль успешно создан');
+            ->with('success', __('site.messages.profile_created'));
     }
 
     /**
@@ -86,7 +75,7 @@ class ProfileController extends Controller {
         $profile->update($request->validated());
         return redirect()
             ->route('user.profile.show', ['profile' => $profile->id])
-            ->with('success', 'Профиль был успешно отредактирован');
+            ->with('success', __('site.messages.profile_updated'));
     }
 
     /**
@@ -99,6 +88,6 @@ class ProfileController extends Controller {
         $profile->delete();
         return redirect()
             ->route('user.profile.index')
-            ->with('success', 'Профиль был успешно удален');
+            ->with('success', __('site.messages.profile_deleted'));
     }
 }

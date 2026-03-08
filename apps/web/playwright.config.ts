@@ -28,7 +28,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'powershell -ExecutionPolicy Bypass -File ./apps/web/scripts/start-playwright-api.ps1',
+      command: 'node ./apps/web/scripts/start-playwright-api.mjs',
       cwd: repositoryRoot,
       env: {
         ...process.env,
@@ -42,15 +42,13 @@ export default defineConfig({
         SESSION_DRIVER: 'file',
         SESSION_DOMAIN: 'localhost',
         SANCTUM_STATEFUL_DOMAINS: 'localhost:3010',
-        PLAYWRIGHT_PHP_BINARY:
-          process.env.PLAYWRIGHT_PHP_BINARY || 'C:\\OSPanel\\modules\\PHP-8.4\\php.exe',
       },
       timeout: 120_000,
       url: `${apiOrigin}/api/v1/catalog`,
       reuseExistingServer: false,
     },
     {
-      command: 'powershell -ExecutionPolicy Bypass -File ./scripts/start-playwright-web.ps1',
+      command: 'node ./scripts/start-playwright-web.mjs',
       cwd: __dirname,
       env: {
         ...process.env,

@@ -1,6 +1,8 @@
 {
   "name": "internetmyshop",
   "private": true,
+  "license": "UNLICENSED",
+  "author": "Rinat Sarmuldin <ura07srr@gmail.com>",
   "engines": {
     "node": ">=24 <25"
   },
@@ -12,6 +14,7 @@
     "web:test:unit": "npm --prefix apps/web run test:unit",
     "web:typecheck": "npm --prefix apps/web run typecheck",
     "web:test:e2e:install": "npm --prefix apps/web run test:e2e:install",
-    "web:test:e2e": "npm --prefix apps/web run test:e2e"
+    "web:test:e2e": "npm --prefix apps/web run test:e2e",
+    "web:quality": "npm run web:lint && npm run web:typecheck && npm run web:test:unit && npm run web:build"
   }
 }

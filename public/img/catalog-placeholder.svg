@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="40" y1="60" x2="1100" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e7dcc7"/>
+      <stop offset="0.55" stop-color="#cfb48b"/>
+      <stop offset="1" stop-color="#5a6d4b"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1200" y2="700" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="700" rx="36" fill="url(#bg)"/>
+  <path d="M114 534 356 295l147 138 132-96 216 197H114Z" fill="#173020" fill-opacity=".55"/>
+  <path d="M790 278 898 178l181 164v192H790V278Z" fill="#203726" fill-opacity=".48"/>
+  <path d="M98 152h1004" stroke="url(#line)" stroke-width="2"/>
+  <path d="M98 230h1004" stroke="url(#line)" stroke-width="2"/>
+  <path d="M98 308h1004" stroke="url(#line)" stroke-width="2"/>
+  <circle cx="907" cy="172" r="56" fill="#f2e2c4" fill-opacity=".82"/>
+  <text x="114" y="140" fill="#1a2118" font-family="Manrope, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="10">PREMIUM EXPEDITION</text>
+  <text x="114" y="208" fill="#1a2118" font-family="Cormorant Garamond, Georgia, serif" font-size="84">Field imagery</text>
+  <text x="114" y="276" fill="#1a2118" font-family="Cormorant Garamond, Georgia, serif" font-size="84">loading shortly</text>
+</svg>

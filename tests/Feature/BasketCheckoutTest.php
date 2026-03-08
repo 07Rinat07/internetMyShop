@@ -34,8 +34,7 @@ class BasketCheckoutTest extends TestCase {
         $basket->products()->attach($product->id, ['quantity' => 2]);
 
         $response = $this
-            ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string)$basket->id)
+            ->withCookie('basket_id', (string) $basket->id)
             ->post(route('basket.saveorder'), [
                 'name' => 'Ivan Ivanov',
                 'email' => 'ivan@example.com',
@@ -56,5 +55,34 @@ class BasketCheckoutTest extends TestCase {
         $this->assertNull($order->user_id);
         $this->assertCount(1, $order->items);
         $this->assertSame(0, $basket->fresh()->products()->count());
+    }
+
+    public function test_plain_basket_cookie_cannot_open_existing_basket() {
+        $category = Category::factory()->create([
+            'parent_id' => 0,
+            'name' => 'Isolation category',
+            'slug' => 'isolation-category',
+        ]);
+        $brand = Brand::factory()->create([
+            'name' => 'Isolation brand',
+            'slug' => 'isolation-brand',
+        ]);
+        $product = Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'Isolation product',
+            'slug' => 'isolation-product',
+            'price' => 1500,
+        ]);
+        $basket = Basket::create();
+        $basket->products()->attach($product->id, ['quantity' => 1]);
+
+        $response = $this
+            ->withUnencryptedCookie('basket_id', (string) $basket->id)
+            ->get(route('basket.index'));
+
+        $response
+            ->assertOk()
+            ->assertDontSee('Isolation product');
     }
 }

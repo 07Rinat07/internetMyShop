@@ -13,11 +13,11 @@ enum OrderStatus: int
     public function label(): string
     {
         return match ($this) {
-            self::New => 'Новый',
-            self::Processed => 'Обработан',
-            self::Paid => 'Оплачен',
-            self::Delivered => 'Доставлен',
-            self::Completed => 'Завершен',
+            self::New => __('site.order_status.new'),
+            self::Processed => __('site.order_status.processed'),
+            self::Paid => __('site.order_status.paid'),
+            self::Delivered => __('site.order_status.delivered'),
+            self::Completed => __('site.order_status.completed'),
         };
     }
 

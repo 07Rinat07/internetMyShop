@@ -13,6 +13,13 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    private const TOKEN_ABILITIES = [
+        'auth:self',
+        'profile:read',
+        'profile:write',
+        'orders:read',
+    ];
+
     public function register(RegisterRequest $request)
     {
         $user = User::create([
@@ -55,9 +62,18 @@ class AuthController extends Controller
         return response()->json([], 204);
     }
 
+    public function logoutAll(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json([], 204);
+    }
+
     private function tokenResponse(User $user, string $deviceName, int $status = 200)
     {
-        $token = $user->createToken($deviceName)->plainTextToken;
+        $expiration = (int) config('sanctum.expiration');
+        $expiresAt = $expiration > 0 ? now()->addMinutes($expiration) : null;
+        $token = $user->createToken($deviceName, self::TOKEN_ABILITIES, $expiresAt)->plainTextToken;
 
         return response()->json([
             'data' => [

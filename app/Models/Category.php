@@ -45,6 +45,15 @@ class Category extends Model {
     }
 
     /**
+     * Связь «категория принадлежит» таблицы `categories` с таблицей `categories`
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function parent() {
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    /**
      * Связь «один ко многим» таблицы `categories` с таблицей `categories`,но
      * позволяет получить не только дочерние категории, но и дочерние-дочерние
      *

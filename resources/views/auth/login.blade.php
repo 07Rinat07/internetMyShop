@@ -1,9 +1,9 @@
-@extends('layout.site', ['title' => 'Вход в личный кабинет'])
+@extends('layout.site', ['title' => __('Login')])
 
 @section('content')
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card auth-card">
             <div class="card-header">{{ __('Login') }}</div>
 
             <div class="card-body">

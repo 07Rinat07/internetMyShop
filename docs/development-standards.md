@@ -61,9 +61,20 @@ Update docs in the same change when you modify:
 - environment variables;
 - API routes or payloads;
 - auth flow;
+- admin routes or admin behavior;
+- storefront content management behavior;
 - seed data used for manual or automated testing;
+- hosting or deployment assumptions;
 - architecture boundaries;
 - operational behavior in Docker or local environments.
+
+The minimum documentation set to consider on every meaningful change is:
+
+- `README.md`
+- `docs/architecture.md`
+- `docs/openapi.yaml`
+- `docs/hosting-deployment.md`
+- `docs/documentation-maintenance.md`
 
 ## Commenting standards
 
@@ -85,17 +96,21 @@ At minimum, changes to auth, checkout, profile ownership, catalog filters, searc
 
 Before closing a meaningful backend change, the relevant scope should be green under:
 
-- `composer lint`
-- `composer analyse`
-- `composer test`
+- `php scripts/app.php backend:lint`
+- `php scripts/app.php backend:analyse`
+- `php scripts/app.php backend:test`
 
 Before closing a meaningful frontend change, the relevant scope should be green under:
 
-- `npm run web:lint`
-- `npm run web:typecheck`
-- `npm run web:test:unit`
+- `php scripts/app.php web:lint`
+- `php scripts/app.php web:typecheck`
+- `php scripts/app.php web:test:unit`
 
 User-facing cross-app flows should add or update a `Playwright` scenario when practical.
+
+Use `php scripts/app.php ...` as the primary documented project entrypoint for cross-platform local work. `composer` aliases may stay as convenience shortcuts, but documentation should prefer the universal launcher.
+
+If tooling or commands change, ensure the documented commands still work on Windows, Ubuntu and macOS with the stated prerequisites.
 
 ## Review workflow
 

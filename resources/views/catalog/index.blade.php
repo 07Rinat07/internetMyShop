@@ -1,25 +1,45 @@
-@extends('layout.site', ['title' => 'Каталог товаров'])
+@extends('layout.site', ['title' => __('site.catalog.title')])
 
 @section('content')
-    <h1>Каталог товаров</h1>
+    <section class="page-hero page-hero--compact">
+        <div class="page-hero__content">
+            <span class="page-hero__eyebrow">{{ __('site.catalog.eyebrow') }}</span>
+            <h1 class="page-hero__title">{{ __('site.catalog.headline') }}</h1>
+            <p class="page-hero__description">{{ __('site.catalog.description') }}</p>
+        </div>
+    </section>
 
-    <p>Всем привет! В рамках учебного курса по фреймворку Ларавел и языка программирования PHP 7-8,2, я создал проект который реализован и развернут на хостинге для портфолио. Прошу с пониманием относится к представленному проекту некоммерского назначения.
-        Интернет магазин имеет простую логику и простой дизайн что часто является удобным для клиентов и просто посетителей!
-        Прошу внимания! Система оплаты на сайте неподключена так как проект является учебным и некоммерческим, весь остальной функционал работает в полной мере в режиме Демо!</p>
+    <section class="surface-panel surface-panel--notice">
+        <div class="section-heading mb-0">
+            <div>
+                <span class="section-heading__eyebrow">{{ __('site.header.badge') }}</span>
+                <h2>{{ __('site.catalog.story_title') }}</h2>
+            </div>
+        </div>
+        <p class="surface-panel__text mb-0">{{ __('site.catalog.story_description') }}</p>
+    </section>
 
-    <h2 class="mb-4">Разделы каталога</h2>
-    <div class="row">
-        @foreach ($roots as $root)
-            @include('catalog.part.category', ['category' => $root])
-        @endforeach
-    </div>
+    <section class="content-section">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">{{ __('site.catalog.eyebrow') }}</span>
+            <h2>{{ __('site.catalog.categories_title') }}</h2>
+        </div>
+        <div class="row">
+            @foreach ($roots as $root)
+                @include('catalog.part.category', ['category' => $root])
+            @endforeach
+        </div>
+    </section>
 
-    <h2 class="mb-4">Популярные бренды</h2>
-    <div class="row">
-        @foreach ($brands as $brand)
-            @include('catalog.part.brand', ['brand' => $brand])
-        @endforeach
-    </div>
+    <section class="content-section">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">{{ __('site.catalog.eyebrow') }}</span>
+            <h2>{{ __('site.catalog.brands_title') }}</h2>
+        </div>
+        <div class="row">
+            @foreach ($brands as $brand)
+                @include('catalog.part.brand', ['brand' => $brand])
+            @endforeach
+        </div>
+    </section>
 @endsection
-
-

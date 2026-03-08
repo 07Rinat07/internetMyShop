@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -31,18 +32,18 @@ class Basket extends Model {
      */
     public function setQuantity($id, $quantity) {
         $quantity = (int)$quantity;
+        $id = (int)$id;
 
         if ($quantity <= 0) {
             $this->remove($id);
             return;
         }
 
-        $id = (int)$id;
-        if ($this->products->contains($id)) {
-            $this->products()->updateExistingPivot($id, ['quantity' => $quantity]);
-        } else {
-            $this->products()->attach($id, ['quantity' => $quantity]);
-        }
+        DB::table('basket_product')
+            ->updateOrInsert(
+                ['basket_id' => $this->id, 'product_id' => $id],
+                ['quantity' => $quantity]
+            );
 
         $this->unsetRelation('products');
         $this->touch();
@@ -65,21 +66,38 @@ class Basket extends Model {
             return;
         }
         $id = (int)$id;
-        // если товар есть в корзине — изменяем кол-во
-        if ($this->products->contains($id)) {
-            // получаем объект строки таблицы `basket_product`
-            $pivotRow = $this->products()->where('product_id', $id)->first()->pivot;
-            $quantity = $pivotRow->quantity + $count;
-            if ($quantity > 0) {
-                // обновляем количество товара $id в корзине
-                $pivotRow->update(['quantity' => $quantity]);
-            } else {
-                // кол-во равно нулю — удаляем товар из корзины
-                $pivotRow->delete();
+
+        DB::transaction(function () use ($id, $count) {
+            $pivotRow = DB::table('basket_product')
+                ->where('basket_id', $this->id)
+                ->where('product_id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($pivotRow) {
+                $quantity = (int) $pivotRow->quantity + $count;
+                if ($quantity > 0) {
+                    DB::table('basket_product')
+                        ->where('id', $pivotRow->id)
+                        ->update(['quantity' => $quantity]);
+                } else {
+                    DB::table('basket_product')
+                        ->where('id', $pivotRow->id)
+                        ->delete();
+                }
+
+                return;
             }
-        } elseif ($count > 0) { // иначе — добавляем в корзину
-            $this->products()->attach($id, ['quantity' => $count]);
-        }
+
+            if ($count > 0) {
+                DB::table('basket_product')->insert([
+                    'basket_id' => $this->id,
+                    'product_id' => $id,
+                    'quantity' => $count,
+                ]);
+            }
+        });
+
         $this->unsetRelation('products');
         // обновляем поле `updated_at` таблицы `baskets`
         $this->touch();
@@ -126,7 +144,10 @@ class Basket extends Model {
         if (empty($basket_id)) {
             return 0;
         }
-        return self::getBasket()->products->count();
+
+        return (int) DB::table('basket_product')
+            ->where('basket_id', (int) $basket_id)
+            ->count();
     }
 
     /**

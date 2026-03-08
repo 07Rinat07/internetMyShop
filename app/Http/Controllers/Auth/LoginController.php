@@ -46,7 +46,7 @@ class LoginController extends Controller
         $route = 'user.index';
         $message = 'Вы успешно вошли в личный кабинет';
         if ($user->admin) {
-            $route = 'admin.index';
+            $route = 'moonshine.index';
             $message = 'Вы успешно вошли в панель управления';
         }
         return redirect()->route($route)

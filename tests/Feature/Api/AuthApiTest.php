@@ -29,6 +29,12 @@ class AuthApiTest extends TestCase
             'email' => 'new-api-user@example.com',
         ]);
         $this->assertSame(1, PersonalAccessToken::count());
+        $token = PersonalAccessToken::first();
+        $this->assertNotNull($token?->expires_at);
+        $this->assertSame(
+            ['auth:self', 'profile:read', 'profile:write', 'orders:read'],
+            $token?->abilities
+        );
     }
 
     public function test_login_me_and_logout_work_with_sanctum_token()
@@ -78,5 +84,19 @@ class AuthApiTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors('email');
+    }
+
+    public function test_logout_all_revokes_every_token_for_user()
+    {
+        $user = User::factory()->create();
+        $firstToken = $user->createToken('device-1', ['auth:self'])->plainTextToken;
+        $user->createToken('device-2', ['auth:self']);
+
+        $response = $this
+            ->withToken($firstToken)
+            ->postJson('/api/v1/auth/logout-all');
+
+        $response->assertNoContent();
+        $this->assertSame(0, PersonalAccessToken::query()->where('tokenable_id', $user->id)->count());
     }
 }

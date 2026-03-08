@@ -5,6 +5,9 @@ namespace Tests\Feature\Admin;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
+use App\MoonShine\Resources\Order\OrderResource;
+use App\MoonShine\Resources\Product\ProductResource;
+use App\MoonShine\Resources\User\UserResource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,16 +15,33 @@ class AdminOrderManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_non_admin_cannot_update_order_status(): void
+    public function test_admin_can_access_moonshine_dashboard(): void
+    {
+        $admin = User::factory()->create(['admin' => true]);
+
+        $response = $this
+            ->actingAs($admin)
+            ->get(route('moonshine.index'));
+
+        $response
+            ->assertOk()
+            ->assertSeeText(__('site.navigation.to_site'))
+            ->assertSeeText(__('site.account.logout'))
+            ->assertSee(app(ProductResource::class)->getIndexPageUrl(), false)
+            ->assertSee(app(OrderResource::class)->getIndexPageUrl(), false)
+            ->assertSee(app(UserResource::class)->getIndexPageUrl(), false)
+            ->assertDontSee(route('moonshine.crud.index', [
+                'resourceUri' => app(ProductResource::class)->getUriKey(),
+            ]), false);
+    }
+
+    public function test_non_admin_cannot_access_moonshine_dashboard(): void
     {
         $user = User::factory()->create();
-        $order = $this->createOrder();
 
         $response = $this
             ->actingAs($user)
-            ->put(route('admin.order.update', ['order' => $order->id]), [
-                'status' => OrderStatus::Processed->value,
-            ]);
+            ->get(route('moonshine.index'));
 
         $response->assertForbidden();
     }
@@ -34,13 +54,17 @@ class AdminOrderManagementTest extends TestCase
 
         $response = $this
             ->actingAs($admin)
-            ->put(route('admin.order.update', ['order' => $order->id]), [
+            ->from(route('moonshine.index'))
+            ->put(route('moonshine.crud.update', [
+                'resourceUri' => app(OrderResource::class)->getUriKey(),
+                'resourceItem' => $order->id,
+            ]), [
                 'status' => OrderStatus::Processed->value,
                 'amount' => 1,
                 'user_id' => $admin->id,
             ]);
 
-        $response->assertRedirect(route('admin.order.show', ['order' => $order->id]));
+        $response->assertRedirect();
 
         $order->refresh();
 

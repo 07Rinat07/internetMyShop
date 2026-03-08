@@ -11,111 +11,20 @@ class DemoCatalogSeeder extends Seeder
 {
     public function run()
     {
+        $this->removeLegacyFixtures();
+
         $categories = $this->seedCategories();
         $brands = $this->seedBrands();
 
-        $products = [
-            [
-                'category' => 'backpacks',
-                'brand' => 'alpine-works',
-                'name' => 'Alpine Expedition 45',
-                'slug' => 'alpine-expedition-45',
-                'content' => 'Large hiking backpack for demo catalog and basket testing.',
-                'price' => 18990.00,
-                'new' => true,
-                'hit' => true,
-                'sale' => false,
-            ],
-            [
-                'category' => 'backpacks',
-                'brand' => 'trailhead',
-                'name' => 'Trailhead Scout 28',
-                'slug' => 'trailhead-scout-28',
-                'content' => 'Compact daypack suitable for quick purchase and checkout checks.',
-                'price' => 12490.00,
-                'new' => true,
-                'hit' => false,
-                'sale' => false,
-            ],
-            [
-                'category' => 'duffel-bags',
-                'brand' => 'urban-nomad',
-                'name' => 'Urban Nomad Transit 55',
-                'slug' => 'urban-nomad-transit-55',
-                'content' => 'Travel duffel for testing brand pages and order creation.',
-                'price' => 15990.00,
-                'new' => false,
-                'hit' => true,
-                'sale' => true,
-            ],
-            [
-                'category' => 'duffel-bags',
-                'brand' => 'alpine-works',
-                'name' => 'Alpine Weekender 40',
-                'slug' => 'alpine-weekender-40',
-                'content' => 'Weekend bag for category, basket and admin product checks.',
-                'price' => 13990.00,
-                'new' => false,
-                'hit' => false,
-                'sale' => true,
-            ],
-            [
-                'category' => 'drinkware',
-                'brand' => 'trailhead',
-                'name' => 'Trailhead Thermo Bottle 1L',
-                'slug' => 'trailhead-thermo-bottle-1l',
-                'content' => 'Accessory product for testing small items in the cart.',
-                'price' => 4990.00,
-                'new' => false,
-                'hit' => true,
-                'sale' => false,
-            ],
-            [
-                'category' => 'drinkware',
-                'brand' => 'camp-forge',
-                'name' => 'Camp Forge Mug',
-                'slug' => 'camp-forge-mug',
-                'content' => 'Low-cost accessory to test order totals and quantity changes.',
-                'price' => 2490.00,
-                'new' => false,
-                'hit' => false,
-                'sale' => true,
-            ],
-            [
-                'category' => 'sleeping-bags',
-                'brand' => 'alpine-works',
-                'name' => 'Alpine Summit Sleeping Bag',
-                'slug' => 'alpine-summit-sleeping-bag',
-                'content' => 'Sleeping bag for testing broader catalog coverage.',
-                'price' => 21990.00,
-                'new' => true,
-                'hit' => false,
-                'sale' => false,
-            ],
-            [
-                'category' => 'sleeping-bags',
-                'brand' => 'camp-forge',
-                'name' => 'Camp Forge Trek Lite',
-                'slug' => 'camp-forge-trek-lite',
-                'content' => 'Alternative sleeping bag to validate filters and product detail routes.',
-                'price' => 17490.00,
-                'new' => false,
-                'hit' => true,
-                'sale' => false,
-            ],
-        ];
-
-        foreach ($products as $product) {
+        foreach ($this->products() as $product) {
             Product::updateOrCreate(
-                [
-                    'slug' => $product['slug'],
-                ],
+                ['slug' => $product['slug']],
                 [
                     'category_id' => $categories[$product['category']]->id,
                     'brand_id' => $brands[$product['brand']]->id,
                     'name' => $product['name'],
                     'content' => $product['content'],
-                    'image' => null,
+                    'image' => $product['image'],
                     'price' => $product['price'],
                     'new' => $product['new'],
                     'hit' => $product['hit'],
@@ -125,73 +34,104 @@ class DemoCatalogSeeder extends Seeder
         }
     }
 
+    private function removeLegacyFixtures()
+    {
+        Product::whereIn('slug', [
+            'alpine-expedition-45',
+            'trailhead-scout-28',
+            'urban-nomad-transit-55',
+            'alpine-weekender-40',
+            'trailhead-thermo-bottle-1l',
+            'camp-forge-mug',
+            'alpine-summit-sleeping-bag',
+            'camp-forge-trek-lite',
+        ])->delete();
+
+        Category::whereIn('slug', [
+            'outdoor-gear',
+            'travel-gear',
+            'accessories',
+            'backpacks',
+            'sleeping-bags',
+            'duffel-bags',
+            'drinkware',
+        ])->delete();
+
+        Brand::whereIn('slug', [
+            'alpine-works',
+            'trailhead',
+            'urban-nomad',
+            'camp-forge',
+        ])->delete();
+    }
+
     private function seedCategories()
     {
-        $outdoor = Category::updateOrCreate(
-            ['slug' => 'outdoor-gear'],
+        $alpine = Category::updateOrCreate(
+            ['slug' => 'alpine'],
             [
                 'parent_id' => 0,
-                'name' => 'Outdoor Gear',
-                'content' => 'Main category for outdoor catalog testing.',
-                'image' => null,
+                'name' => 'Alpine',
+                'content' => 'Technical packs and mountain-ready layers for fast, high-output movement.',
+                'image' => 'alpine.jpg',
+            ]
+        );
+
+        $basecamp = Category::updateOrCreate(
+            ['slug' => 'basecamp'],
+            [
+                'parent_id' => 0,
+                'name' => 'Basecamp',
+                'content' => 'Shelter, sleep systems and camp essentials for longer stops in rough conditions.',
+                'image' => 'basecamp.jpg',
             ]
         );
 
         $travel = Category::updateOrCreate(
-            ['slug' => 'travel-gear'],
+            ['slug' => 'travel'],
             [
                 'parent_id' => 0,
-                'name' => 'Travel Gear',
-                'content' => 'Category for travel products in demo data.',
-                'image' => null,
-            ]
-        );
-
-        $accessories = Category::updateOrCreate(
-            ['slug' => 'accessories'],
-            [
-                'parent_id' => 0,
-                'name' => 'Accessories',
-                'content' => 'Accessory category for small checkout items.',
-                'image' => null,
+                'name' => 'Travel',
+                'content' => 'Route-to-terminal duffels and transit gear built for constant movement.',
+                'image' => 'travel.jpg',
             ]
         );
 
         return [
-            'backpacks' => Category::updateOrCreate(
-                ['slug' => 'backpacks'],
+            'technical-packs' => Category::updateOrCreate(
+                ['slug' => 'technical-packs'],
                 [
-                    'parent_id' => $outdoor->id,
-                    'name' => 'Backpacks',
-                    'content' => 'Backpack category for testing catalog pages.',
-                    'image' => null,
+                    'parent_id' => $alpine->id,
+                    'name' => 'Technical Packs',
+                    'content' => 'Lightweight carry systems for ridgelines, steep access and fast summit days.',
+                    'image' => 'alpine.jpg',
                 ]
             ),
-            'sleeping-bags' => Category::updateOrCreate(
-                ['slug' => 'sleeping-bags'],
+            'sleeping-systems' => Category::updateOrCreate(
+                ['slug' => 'sleeping-systems'],
                 [
-                    'parent_id' => $outdoor->id,
-                    'name' => 'Sleeping Bags',
-                    'content' => 'Sleeping bags for wider demo catalog coverage.',
-                    'image' => null,
+                    'parent_id' => $basecamp->id,
+                    'name' => 'Sleeping Systems',
+                    'content' => 'Cold-weather sleep gear for exposed camps, snow lines and extended stops.',
+                    'image' => 'sleep.jpg',
                 ]
             ),
-            'duffel-bags' => Category::updateOrCreate(
-                ['slug' => 'duffel-bags'],
+            'camp-drinkware' => Category::updateOrCreate(
+                ['slug' => 'camp-drinkware'],
+                [
+                    'parent_id' => $basecamp->id,
+                    'name' => 'Camp Drinkware',
+                    'content' => 'Insulated bottles and mugs for cold starts, stove sessions and long carries.',
+                    'image' => 'drink.jpg',
+                ]
+            ),
+            'expedition-duffels' => Category::updateOrCreate(
+                ['slug' => 'expedition-duffels'],
                 [
                     'parent_id' => $travel->id,
-                    'name' => 'Duffel Bags',
-                    'content' => 'Travel bags for brand and product detail testing.',
-                    'image' => null,
-                ]
-            ),
-            'drinkware' => Category::updateOrCreate(
-                ['slug' => 'drinkware'],
-                [
-                    'parent_id' => $accessories->id,
-                    'name' => 'Drinkware',
-                    'content' => 'Small items that are useful for cart and checkout tests.',
-                    'image' => null,
+                    'name' => 'Expedition Duffels',
+                    'content' => 'Hard-wearing transit bags for flights, truck beds and gear-room transfers.',
+                    'image' => 'duffel.jpg',
                 ]
             ),
         ];
@@ -200,38 +140,148 @@ class DemoCatalogSeeder extends Seeder
     private function seedBrands()
     {
         return [
-            'alpine-works' => Brand::updateOrCreate(
-                ['slug' => 'alpine-works'],
+            'arcteryx' => Brand::updateOrCreate(
+                ['slug' => 'arcteryx'],
                 [
-                    'name' => 'Alpine Works',
-                    'content' => 'Outdoor brand for demo products.',
-                    'image' => null,
+                    'name' => "Arc'teryx",
+                    'content' => 'Technical mountain equipment with a clean alpine design language and serious route intent.',
+                    'image' => 'arc.jpg',
                 ]
             ),
-            'trailhead' => Brand::updateOrCreate(
-                ['slug' => 'trailhead'],
+            'osprey' => Brand::updateOrCreate(
+                ['slug' => 'osprey'],
                 [
-                    'name' => 'Trailhead',
-                    'content' => 'Mid-range demo brand for catalog and checkout testing.',
-                    'image' => null,
+                    'name' => 'Osprey',
+                    'content' => 'Known for balanced carry systems, ventilation and comfort over long, uneven miles.',
+                    'image' => 'osp.jpg',
                 ]
             ),
-            'urban-nomad' => Brand::updateOrCreate(
-                ['slug' => 'urban-nomad'],
+            'patagonia' => Brand::updateOrCreate(
+                ['slug' => 'patagonia'],
                 [
-                    'name' => 'Urban Nomad',
-                    'content' => 'Travel-oriented demo brand.',
-                    'image' => null,
+                    'name' => 'Patagonia',
+                    'content' => 'A modern expedition staple for durable travel bags and cold-weather insulation.',
+                    'image' => 'pat.jpg',
                 ]
             ),
-            'camp-forge' => Brand::updateOrCreate(
-                ['slug' => 'camp-forge'],
+            'the-north-face' => Brand::updateOrCreate(
+                ['slug' => 'the-north-face'],
                 [
-                    'name' => 'Camp Forge',
-                    'content' => 'Accessory-focused demo brand.',
-                    'image' => null,
+                    'name' => 'The North Face',
+                    'content' => 'Expedition-proven outerwear, sleep systems and duffels with real route heritage.',
+                    'image' => 'tnf.jpg',
                 ]
             ),
+            'yeti' => Brand::updateOrCreate(
+                ['slug' => 'yeti'],
+                [
+                    'name' => 'YETI',
+                    'content' => 'Field-tough insulated drinkware for basecamp routines and long-weather exposure.',
+                    'image' => 'yet.jpg',
+                ]
+            ),
+        ];
+    }
+
+    private function products()
+    {
+        return [
+            [
+                'category' => 'technical-packs',
+                'brand' => 'arcteryx',
+                'name' => "Arc'teryx Aerios 35 Pack",
+                'slug' => 'arcteryx-aerios-35-pack',
+                'content' => 'Fast-moving alpine pack for steep approaches, hut traverses and weather-shifting ridge days.',
+                'image' => 'aer35.jpg',
+                'price' => 35990.00,
+                'new' => true,
+                'hit' => true,
+                'sale' => false,
+            ],
+            [
+                'category' => 'technical-packs',
+                'brand' => 'osprey',
+                'name' => 'Osprey Talon 33 Pack',
+                'slug' => 'osprey-talon-33-pack',
+                'content' => 'Ventilated all-day pack built for long scrambles, mixed terrain and efficient moving light.',
+                'image' => 'tal33.jpg',
+                'price' => 24990.00,
+                'new' => true,
+                'hit' => true,
+                'sale' => false,
+            ],
+            [
+                'category' => 'expedition-duffels',
+                'brand' => 'patagonia',
+                'name' => 'Patagonia Black Hole Duffel 55L',
+                'slug' => 'patagonia-black-hole-duffel-55l',
+                'content' => 'Weather-resistant expedition duffel sized for rough transfers, boots, shells and modular packing cubes.',
+                'image' => 'bh55.jpg',
+                'price' => 21990.00,
+                'new' => false,
+                'hit' => true,
+                'sale' => true,
+            ],
+            [
+                'category' => 'expedition-duffels',
+                'brand' => 'the-north-face',
+                'name' => 'The North Face Base Camp Duffel M',
+                'slug' => 'the-north-face-base-camp-duffel-m',
+                'content' => 'A classic expedition duffel for flights, road transfers and basecamp organization in foul weather.',
+                'image' => 'bcduf.jpg',
+                'price' => 19990.00,
+                'new' => false,
+                'hit' => true,
+                'sale' => true,
+            ],
+            [
+                'category' => 'sleeping-systems',
+                'brand' => 'the-north-face',
+                'name' => 'The North Face Blue Kazoo',
+                'slug' => 'the-north-face-blue-kazoo',
+                'content' => 'Cold-weather down sleeping bag tuned for alpine bivies, shoulder-season camps and compact packing.',
+                'image' => 'kazoo.jpg',
+                'price' => 28990.00,
+                'new' => true,
+                'hit' => false,
+                'sale' => false,
+            ],
+            [
+                'category' => 'sleeping-systems',
+                'brand' => 'the-north-face',
+                'name' => 'The North Face Eco Trail Bed 20',
+                'slug' => 'the-north-face-eco-trail-bed-20',
+                'content' => 'Roomier synthetic sleep system for damp weather, colder trailheads and steady basecamp comfort.',
+                'image' => 'fitz.jpg',
+                'price' => 16990.00,
+                'new' => false,
+                'hit' => false,
+                'sale' => true,
+            ],
+            [
+                'category' => 'camp-drinkware',
+                'brand' => 'yeti',
+                'name' => 'YETI Rambler 26 oz Bottle',
+                'slug' => 'yeti-rambler-26-oz-bottle',
+                'content' => 'Insulated carry bottle for frozen dawn starts, long water carries and all-day temperature retention.',
+                'image' => 'rb26.jpg',
+                'price' => 5990.00,
+                'new' => true,
+                'hit' => false,
+                'sale' => false,
+            ],
+            [
+                'category' => 'camp-drinkware',
+                'brand' => 'yeti',
+                'name' => 'YETI Rambler 14 oz Mug',
+                'slug' => 'yeti-rambler-14-oz-mug',
+                'content' => 'Steel camp mug for stove-side coffee, windy ridgelines and slow evenings back in basecamp.',
+                'image' => 'rb14.jpg',
+                'price' => 3990.00,
+                'new' => false,
+                'hit' => true,
+                'sale' => true,
+            ],
         ];
     }
 }

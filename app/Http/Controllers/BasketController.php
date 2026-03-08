@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Orders\CreateOrderFromBasket;
 use App\Http\Requests\CheckoutOrderRequest;
 use App\Models\Basket;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class BasketController extends Controller {
@@ -67,7 +68,7 @@ class BasketController extends Controller {
             abort(404);
         }
         if ( ! auth()->check()) {
-            return response()->json(['error' => 'Нужна авторизация!'], 404);
+            return response()->json(['error' => __('site.messages.auth_required')], 404);
         }
         $user = auth()->user();
         $profile_id = (int)$request->input('profile_id');
@@ -77,7 +78,7 @@ class BasketController extends Controller {
                 return response()->json(['profile' => $profile]);
             }
         }
-        return response()->json(['error' => 'Профиль не найден!'], 404);
+        return response()->json(['error' => __('site.messages.profile_not_found')], 404);
     }
 
     /**
@@ -88,7 +89,7 @@ class BasketController extends Controller {
         if ($basket->products->isEmpty()) {
             return redirect()
                 ->route('basket.index')
-                ->withErrors('Нельзя оформить пустой заказ');
+                ->withErrors(__('site.messages.empty_order'));
         }
 
         $order = $this->createOrderFromBasket->execute($basket, $request->validated(), auth()->id());

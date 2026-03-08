@@ -1,9 +1,9 @@
-@extends('layout.site', ['title' => 'Регистрация на сайте'])
+@extends('layout.site', ['title' => __('Register')])
 
 @section('content')
 <div class="row justify-content-center">
     <div class="col-12">
-        <div class="card">
+        <div class="card auth-card">
             <div class="card-header">{{ __('Register') }}</div>
 
             <div class="card-body">

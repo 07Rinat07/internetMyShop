@@ -42,8 +42,7 @@ class BasketApiTest extends TestCase
 
         $showResponse = $this
             ->withCredentials()
-            ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string) $basket->id)
+            ->withCookie('basket_id', (string) $basket->id)
             ->getJson('/api/v1/basket');
 
         $showResponse->assertOk()
@@ -51,8 +50,7 @@ class BasketApiTest extends TestCase
 
         $updateResponse = $this
             ->withCredentials()
-            ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string) $basket->id)
+            ->withCookie('basket_id', (string) $basket->id)
             ->patchJson('/api/v1/basket/items/'.$product->id, [
                 'quantity' => 4,
             ]);
@@ -62,8 +60,7 @@ class BasketApiTest extends TestCase
 
         $deleteResponse = $this
             ->withCredentials()
-            ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string) $basket->id)
+            ->withCookie('basket_id', (string) $basket->id)
             ->deleteJson('/api/v1/basket/items/'.$product->id);
 
         $deleteResponse->assertOk()
@@ -81,8 +78,7 @@ class BasketApiTest extends TestCase
         $response = $this
             ->withCredentials()
             ->withToken($token)
-            ->disableCookieEncryption()
-            ->withUnencryptedCookie('basket_id', (string) $basket->id)
+            ->withCookie('basket_id', (string) $basket->id)
             ->postJson('/api/v1/basket/checkout', [
                 'name' => 'Api Customer',
                 'email' => 'api-customer@example.com',

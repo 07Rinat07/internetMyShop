@@ -1,15 +1,19 @@
 @extends('layout.site', ['title' => $page->name])
 
 @section('content')
-    <div class="card">
-        <div class="card-header">
-            <h1>{{ $page->name }}</h1>
+    <section class="page-hero page-hero--compact">
+        <div class="page-hero__content">
+            <span class="page-hero__eyebrow">{{ __('site.header.home') }}</span>
+            <h1 class="page-hero__title">{{ $page->name }}</h1>
         </div>
-        <div class="card-body">
-            {!! $page->content  !!}
+    </section>
+
+    <article class="surface-panel page-article">
+        <div class="page-article__content">
+            {!! $page->content !!}
         </div>
-        <div class="card-footer">
-            Добавлена: {{ $page->created_at->format('d.m.Y H:i') }}
+        <div class="page-article__meta">
+            {{ __('site.page.published_at') }}: {{ $page->created_at->format('d.m.Y H:i') }}
         </div>
-    </div>
+    </article>
 @endsection

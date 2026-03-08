@@ -1,21 +1,44 @@
 openapi: 3.1.1
 info:
   title: internetMyShop API
-  version: 1.2.0
+  version: 1.3.0
+  contact:
+    name: Rinat Sarmuldin
+    email: ura07srr@gmail.com
+  license:
+    name: Proprietary - All rights reserved
   description: |
-    Transitional API-first contract for the legacy store.
-    Catalog endpoints are public. Authentication for external frontend clients
-    is handled via Laravel Sanctum bearer tokens. Basket endpoints remain
-    guest-friendly and use the legacy cookie-based basket identifier.
+    API contract for the internetMyShop backend.
+
+    The project combines a Laravel Blade storefront, a MoonShine admin panel
+    and a separate Nuxt frontend with a BFF layer.
+
+    This specification documents the public and authenticated customer API
+    exposed under `/api/v1`.
+
+    Notes:
+    - catalog endpoints are public;
+    - external API clients authenticate through Laravel Sanctum bearer tokens;
+    - the Nuxt browser client reaches this API through its BFF layer;
+    - basket endpoints are guest-friendly and rely on cookie-backed basket state.
 servers:
   - url: /api/v1
     description: Same-host API base for local and Docker Swagger UI
+  - url: http://localhost:8000/api/v1
+    description: Typical local Laravel backend
+  - url: http://localhost:8080/api/v1
+    description: Docker development backend
 tags:
   - name: Auth
+    description: API registration, login, token introspection and logout flows
   - name: Catalog
+    description: Public catalog, category, brand and product read endpoints
   - name: Basket
+    description: Guest-friendly basket lifecycle and checkout
   - name: Profiles
+    description: Saved delivery profiles for authenticated users
   - name: Orders
+    description: Order history for the authenticated owner
 paths:
   /auth/register:
     post:
@@ -84,6 +107,16 @@ paths:
       responses:
         '204':
           description: Logged out
+  /auth/logout-all:
+    post:
+      tags: [Auth]
+      summary: Revoke all Sanctum tokens for current user
+      operationId: logoutAllApiUser
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out from every device
   /catalog:
     get:
       tags: [Catalog]

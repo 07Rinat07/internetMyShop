@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 
@@ -73,9 +74,73 @@ class ImageSaver {
     public function remove($item, $dir) {
         $old = $item->image;
         if ($old) {
-            Storage::disk('public')->delete('catalog/'.$dir.'/source/' . $old);
-            Storage::disk('public')->delete('catalog/'.$dir.'/image/' . $old);
-            Storage::disk('public')->delete('catalog/'.$dir.'/thumb/' . $old);
+            $this->removeByName($old, $dir);
+        }
+    }
+
+    /**
+     * Удаляет изображения по имени файла.
+     */
+    public function removeByName(?string $name, string $dir): void
+    {
+        if (empty($name)) {
+            return;
+        }
+
+        $name = basename($name);
+
+        Storage::disk('public')->delete('catalog/'.$dir.'/source/' . $name);
+        Storage::disk('public')->delete('catalog/'.$dir.'/image/' . $name);
+        Storage::disk('public')->delete('catalog/'.$dir.'/thumb/' . $name);
+    }
+
+    /**
+     * Доводит загруженный MoonShine файл до формата проекта:
+     * в БД остается basename, а на диске создаются image/thumb.
+     */
+    public function syncMoonShineUpload(Model $item, string $dir, ?string $previousImage = null): void
+    {
+        $currentImage = $item->image;
+        $previousImage = empty($previousImage) ? null : basename($previousImage);
+
+        if (empty($currentImage)) {
+            if ($previousImage !== null) {
+                $this->removeByName($previousImage, $dir);
+            }
+
+            return;
+        }
+
+        $rawPath = (string) $currentImage;
+        $basename = basename($rawPath);
+
+        if ($previousImage !== null && $previousImage !== $basename) {
+            $this->removeByName($previousImage, $dir);
+        }
+
+        $sourcePath = str_contains($rawPath, '/')
+            ? $rawPath
+            : 'catalog/'.$dir.'/source/'.$basename;
+
+        if (! Storage::disk('public')->exists($sourcePath)) {
+            $item->forceFill(['image' => $basename])->saveQuietly();
+
+            return;
+        }
+
+        if (str_contains($rawPath, '/')
+            || ! Storage::disk('public')->exists('catalog/'.$dir.'/image/'.$basename)
+            || ! Storage::disk('public')->exists('catalog/'.$dir.'/thumb/'.$basename)
+        ) {
+            $absolutePath = Storage::disk('public')->path($sourcePath);
+            $ext = pathinfo($basename, PATHINFO_EXTENSION) ?: 'jpg';
+
+            $this->resize($absolutePath, 'catalog/'.$dir.'/image/', 600, 300, $ext);
+            $this->resize($absolutePath, 'catalog/'.$dir.'/thumb/', 300, 150, $ext);
+        }
+
+        if ($item->image !== $basename) {
+            $item->forceFill(['image' => $basename])->saveQuietly();
         }
     }
 }

@@ -95,6 +95,8 @@ return [
 
     'fallback_locale' => 'ru',
 
+    'supported_locales' => ['ru', 'en'],
+
     /*
     |--------------------------------------------------------------------------
     | Faker Locale
@@ -173,6 +175,7 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\MoonShineServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
         App\Providers\ComposerServiceProvider::class,
