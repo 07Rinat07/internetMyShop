@@ -28,6 +28,7 @@ Separate `Nuxt 4` frontend for the API-first migration.
 - `/products/:slug`
 - `/basket`
 - `/checkout`
+- `/payments/:publicId`
 - `/login`
 - `/profile`
 - `/orders`
@@ -37,3 +38,4 @@ Separate `Nuxt 4` frontend for the API-first migration.
 - unit: `tests/unit/checkout.test.ts`, `tests/unit/pagination.test.ts`
 - e2e: `tests/e2e/login-basket-checkout.spec.ts`
 - seeded browser-test account: `buyer@example.test` / `Password123!`
+- Playwright checkout flow uses the local `fake` hosted-card provider instead of external PayPal.

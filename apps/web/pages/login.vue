@@ -7,6 +7,7 @@ definePageMeta({
 
 const auth = useAuth()
 const route = useRoute()
+const { t } = useLocale()
 
 const mode = ref<'login' | 'register'>('login')
 const feedback = ref('')
@@ -54,18 +55,18 @@ async function submit() {
   errorMessage.value = ''
   feedback.value = ''
 
-      try {
-        if (mode.value === 'login') {
-          await auth.login(loginForm)
-          feedback.value = 'Signed in through the Nuxt BFF session.'
-        } else {
-          await auth.register(registerForm)
-          feedback.value = 'Account created and secure session started.'
-        }
+  try {
+    if (mode.value === 'login') {
+      await auth.login(loginForm)
+      feedback.value = t('auth.signed_in_feedback')
+    } else {
+      await auth.register(registerForm)
+      feedback.value = t('auth.registered_feedback')
+    }
 
     await navigateTo((route.query.redirect as string) || '/profile')
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Authentication request failed.')
+    errorMessage.value = getApiErrorMessage(error, t('auth.request_failed'))
   }
 }
 </script>
@@ -73,25 +74,24 @@ async function submit() {
 <template>
   <div class="split">
     <section class="hero">
-      <span class="hero__eyebrow">Auth Gateway</span>
-      <h1>Login and registration now live outside the monolith.</h1>
+      <span class="hero__eyebrow">{{ t('auth.hero_eyebrow') }}</span>
+      <h1>{{ t('auth.hero_title') }}</h1>
       <p>
-        This screen talks to the local <span class="mono">/bff/auth/*</span> routes. The Nuxt
-        server keeps the backend token in an HttpOnly cookie and proxies protected API calls.
+        {{ t('auth.hero_description') }}
       </p>
 
       <div class="metric-row">
         <div class="metric">
-          <span class="muted">Contract</span>
-          <strong>BFF proxy</strong>
+          <span class="muted">{{ t('auth.contract') }}</span>
+          <strong>{{ t('auth.metric_access_value') }}</strong>
         </div>
         <div class="metric">
-          <span class="muted">Runtime</span>
-          <strong>Nuxt 4</strong>
+          <span class="muted">{{ t('auth.runtime') }}</span>
+          <strong>{{ t('auth.metric_profiles_value') }}</strong>
         </div>
         <div class="metric">
-          <span class="muted">Backend</span>
-          <strong>Laravel API</strong>
+          <span class="muted">{{ t('auth.backend') }}</span>
+          <strong>{{ t('auth.metric_orders_value') }}</strong>
         </div>
       </div>
     </section>
@@ -99,8 +99,8 @@ async function submit() {
     <section class="card stack">
       <div class="section__header">
         <div>
-          <span class="eyebrow">Access</span>
-          <h2>{{ mode === 'login' ? 'Sign in' : 'Create account' }}</h2>
+          <span class="eyebrow">{{ t('auth.access') }}</span>
+          <h2>{{ mode === 'login' ? t('auth.sign_in') : t('auth.create_account') }}</h2>
         </div>
         <div class="pill-row">
           <button
@@ -110,7 +110,7 @@ async function submit() {
             data-testid="auth-mode-login"
             @click="mode = 'login'"
           >
-            Login
+            {{ t('auth.login') }}
           </button>
           <button
             class="button"
@@ -119,7 +119,7 @@ async function submit() {
             data-testid="auth-mode-register"
             @click="mode = 'register'"
           >
-            Register
+            {{ t('auth.register') }}
           </button>
         </div>
       </div>
@@ -127,7 +127,7 @@ async function submit() {
       <form class="form-grid" @submit.prevent="submit">
         <template v-if="mode === 'register'">
           <div class="field">
-            <label for="register-name">Name</label>
+            <label for="register-name">{{ t('auth.name') }}</label>
             <input
               id="register-name"
               v-model="registerForm.name"
@@ -139,7 +139,7 @@ async function submit() {
         </template>
 
         <div class="field">
-          <label :for="mode === 'login' ? 'login-email' : 'register-email'">Email</label>
+          <label :for="mode === 'login' ? 'login-email' : 'register-email'">{{ t('auth.email') }}</label>
           <input
             :id="mode === 'login' ? 'login-email' : 'register-email'"
             v-model="currentEmail"
@@ -152,7 +152,7 @@ async function submit() {
         </div>
 
         <div class="field">
-          <label :for="mode === 'login' ? 'login-password' : 'register-password'">Password</label>
+          <label :for="mode === 'login' ? 'login-password' : 'register-password'">{{ t('auth.password') }}</label>
           <input
             :id="mode === 'login' ? 'login-password' : 'register-password'"
             v-model="currentPassword"
@@ -166,7 +166,7 @@ async function submit() {
 
         <template v-if="mode === 'register'">
           <div class="field">
-            <label for="register-password-confirmation">Confirm password</label>
+            <label for="register-password-confirmation">{{ t('auth.confirm_password') }}</label>
             <input
               id="register-password-confirmation"
               v-model="registerForm.password_confirmation"
@@ -187,7 +187,7 @@ async function submit() {
         </div>
 
         <button class="button button--accent" data-testid="auth-submit" type="submit" :disabled="auth.busy.value">
-          {{ auth.busy.value ? 'Submitting...' : mode === 'login' ? 'Login' : 'Register' }}
+          {{ auth.busy.value ? t('auth.submitting') : mode === 'login' ? t('auth.login') : t('auth.register') }}
         </button>
       </form>
     </section>

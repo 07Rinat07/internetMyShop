@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -14,7 +15,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $address
  * @property string|null $comment
  * @property float $amount
+ * @property string $currency
  * @property int $status
+ * @property string $payment_method
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $items_count
@@ -29,7 +32,9 @@ class Order extends Model
         'phone',
         'address',
         'comment',
+        'currency',
         'status',
+        'payment_method',
     ];
 
     public const STATUSES = [
@@ -64,8 +69,18 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function statusEnum(): OrderStatus
     {
         return OrderStatus::from((int) $this->status);
+    }
+
+    public function paymentMethodEnum(): PaymentMethod
+    {
+        return PaymentMethod::from((string) $this->payment_method);
     }
 }

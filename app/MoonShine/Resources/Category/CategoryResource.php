@@ -30,7 +30,7 @@ class CategoryResource extends CatalogModelResource
 {
     protected string $model = Category::class;
 
-    protected string $title = 'Категории';
+    protected string $title = '';
 
     protected string $column = 'name';
 
@@ -42,6 +42,7 @@ class CategoryResource extends CatalogModelResource
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.category.title');
         $this->alias('categories');
     }
 
@@ -61,11 +62,11 @@ class CategoryResource extends CatalogModelResource
     {
         return [
             ID::make()->sortable(),
-            $this->previewField('Фото')->columnSelection(false),
-            Text::make('Название', 'name')->sortable(),
-            Text::make('Слаг', 'slug'),
-            Text::make('Родитель', formatted: static fn (Category $category) => $category->parent?->name ?? 'Корневая категория'),
-            Text::make('Товаров', formatted: static fn (Category $category) => (string) $category->products()->count()),
+            $this->previewField(__('admin.fields.photo'))->columnSelection(false),
+            Text::make(__('admin.fields.name'), 'name')->sortable(),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.parent'), formatted: static fn (Category $category) => $category->parent?->name ?? __('admin.common.root_category')),
+            Text::make(__('admin.fields.products_count'), formatted: static fn (Category $category) => (string) $category->products()->count()),
         ];
     }
 
@@ -75,14 +76,14 @@ class CategoryResource extends CatalogModelResource
             Box::make([
                 ID::make(),
                 Flex::make([
-                    Text::make('Название', 'name')->required(),
-                    Slug::make('Слаг', 'slug')->from('name')->live(),
+                    Text::make(__('admin.fields.name'), 'name')->required(),
+                    Slug::make(__('admin.fields.slug'), 'slug')->from('name')->live(),
                 ]),
-                Select::make('Родительская категория', 'parent_id')
+                Select::make(__('admin.resources.category.parent_category'), 'parent_id')
                     ->options($this->parentOptions((int) ($this->getItem()?->id ?? 0)))
                     ->default(0)
                     ->required(),
-                Textarea::make('Описание', 'content')->nullable(),
+                Textarea::make(__('admin.fields.description'), 'content')->nullable(),
                 $this->uploadField(),
             ]),
         ];
@@ -92,12 +93,12 @@ class CategoryResource extends CatalogModelResource
     {
         return [
             ID::make(),
-            $this->previewField('Изображение', 'image'),
-            Text::make('Название', 'name'),
-            Text::make('Слаг', 'slug'),
-            Text::make('Родитель', formatted: static fn (Category $category) => $category->parent?->name ?? 'Корневая категория'),
-            Text::make('Товаров', formatted: static fn (Category $category) => (string) $category->products()->count()),
-            Textarea::make('Описание', 'content'),
+            $this->previewField(__('admin.fields.image'), 'image'),
+            Text::make(__('admin.fields.name'), 'name'),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.parent'), formatted: static fn (Category $category) => $category->parent?->name ?? __('admin.common.root_category')),
+            Text::make(__('admin.fields.products_count'), formatted: static fn (Category $category) => (string) $category->products()->count()),
+            Textarea::make(__('admin.fields.description'), 'content'),
         ];
     }
 
@@ -146,11 +147,11 @@ class CategoryResource extends CatalogModelResource
         $category = $item->getOriginal();
 
         if ($category->children()->exists()) {
-            throw new RuntimeException('Нельзя удалить категорию с дочерними категориями');
+            throw new RuntimeException(__('admin.resources.category.cannot_delete_with_children'));
         }
 
         if ($category->products()->exists()) {
-            throw new RuntimeException('Нельзя удалить категорию, которая содержит товары');
+            throw new RuntimeException(__('admin.resources.category.cannot_delete_with_products'));
         }
 
         return parent::beforeDeleting($item);
@@ -164,7 +165,7 @@ class CategoryResource extends CatalogModelResource
             $excluded[] = $currentId;
         }
 
-        return [0 => 'Корневая категория'] + Category::query()
+        return [0 => __('admin.common.root_category')] + Category::query()
             ->when($excluded !== [], static fn ($query) => $query->whereNotIn('id', $excluded))
             ->orderBy('name')
             ->pluck('name', 'id')

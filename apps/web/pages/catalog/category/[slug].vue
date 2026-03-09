@@ -5,6 +5,7 @@ import { normalizePositivePage } from '~/utils/pagination'
 const api = useApiClient()
 const basket = useBasket()
 const route = useRoute()
+const { productFlagLabel, t } = useLocale()
 
 const slug = computed(() => route.params.slug as string)
 const page = computed(() => normalizePositivePage(route.query.page))
@@ -28,9 +29,9 @@ async function addToBasket(productId: number) {
 
   try {
     const result = await basket.addItem(productId, 1)
-    feedback.value = `Added to basket. Items now: ${result.positions}.`
+    feedback.value = t('common.added_to_basket', { count: result.positions })
   } catch (requestError) {
-    actionError.value = getApiErrorMessage(requestError, 'Failed to add product to basket.')
+    actionError.value = getApiErrorMessage(requestError, t('common.add_failed'))
   } finally {
     activeProductId.value = null
   }
@@ -46,19 +47,18 @@ async function goToPage(nextPage: number) {
 
 <template>
   <section class="hero">
-    <span class="hero__eyebrow">Category</span>
-    <h1>{{ data?.data.category.name || 'Loading category' }}</h1>
+    <span class="hero__eyebrow">{{ t('category_page.hero_eyebrow') }}</span>
+    <h1>{{ data?.data.category.name || t('category_page.loading_title') }}</h1>
     <p>
-      This route already reads the paginated category API and can add products into the shared
-      basket state used by the separate frontend shell.
+      {{ t('category_page.hero_description') }}
     </p>
 
     <div class="hero__actions">
       <NuxtLink class="button button--ghost" to="/catalog">
-        Back to catalog
+        {{ t('common.back_to_catalog') }}
       </NuxtLink>
       <NuxtLink class="button button--accent" to="/basket">
-        Open basket
+        {{ t('common.open_basket') }}
       </NuxtLink>
     </div>
   </section>
@@ -72,24 +72,24 @@ async function goToPage(nextPage: number) {
     </div>
 
     <div v-if="error" class="status status--error">
-      {{ getApiErrorMessage(error, 'Failed to load category.') }}
+      {{ getApiErrorMessage(error, t('category_page.load_failed')) }}
     </div>
     <div v-else-if="pending" class="card">
-      Loading products...
+      {{ t('category_page.loading') }}
     </div>
     <template v-else-if="data">
       <div class="section__header">
         <div>
-          <span class="eyebrow">Products</span>
-          <h2>{{ data.meta.total }} items available</h2>
+          <span class="eyebrow">{{ t('common.products') }}</span>
+          <h2>{{ t('category_page.products_title', { count: data.meta.total }) }}</h2>
         </div>
         <button class="button button--ghost" type="button" @click="refresh()">
-          Refresh
+          {{ t('common.refresh') }}
         </button>
       </div>
 
       <div v-if="!data.data.products.length" class="empty-state">
-        <p>No products are published in this category yet.</p>
+        <p>{{ t('category_page.empty') }}</p>
       </div>
       <div v-else class="grid grid--thirds">
         <article
@@ -98,10 +98,21 @@ async function goToPage(nextPage: number) {
           class="card stack"
           data-testid="product-card"
         >
+          <NuxtLink class="catalog-media catalog-media--product" :to="`/products/${product.slug}`">
+            <img
+              v-if="product.image"
+              :src="product.image"
+              :alt="product.name"
+              class="catalog-media__image"
+              loading="lazy"
+            >
+            <div v-else class="catalog-media__placeholder" aria-hidden="true"></div>
+          </NuxtLink>
+
           <div class="pill-row">
-            <span v-if="product.flags.new" class="pill">new</span>
-            <span v-if="product.flags.hit" class="pill">hit</span>
-            <span v-if="product.flags.sale" class="pill">sale</span>
+            <span v-if="product.flags.new" class="pill">{{ productFlagLabel('new') }}</span>
+            <span v-if="product.flags.hit" class="pill">{{ productFlagLabel('hit') }}</span>
+            <span v-if="product.flags.sale" class="pill">{{ productFlagLabel('sale') }}</span>
           </div>
 
           <div class="stack">
@@ -110,7 +121,6 @@ async function goToPage(nextPage: number) {
                 {{ product.name }}
               </NuxtLink>
             </h3>
-            <p class="muted mono">slug: {{ product.slug }}</p>
             <p v-if="product.brand">
               <NuxtLink :to="`/brands/${product.brand.slug}`">
                 {{ product.brand.name }}
@@ -120,7 +130,7 @@ async function goToPage(nextPage: number) {
 
           <div class="metric-row">
             <div class="metric">
-              <span class="muted">Price</span>
+              <span class="muted">{{ t('common.price') }}</span>
               <strong>{{ product.price }}</strong>
             </div>
           </div>
@@ -133,7 +143,7 @@ async function goToPage(nextPage: number) {
               :disabled="activeProductId === product.id"
               @click="addToBasket(product.id)"
             >
-              {{ activeProductId === product.id ? 'Adding...' : 'Add to basket' }}
+              {{ activeProductId === product.id ? t('common.adding') : t('common.add_to_basket') }}
             </button>
           </div>
         </article>
@@ -141,8 +151,8 @@ async function goToPage(nextPage: number) {
 
       <div class="section section__header">
         <div>
-          <span class="eyebrow">Pagination</span>
-          <h2>Page {{ data.meta.current_page }} of {{ data.meta.last_page }}</h2>
+          <span class="eyebrow">{{ t('common.pagination') }}</span>
+          <h2>{{ t('common.page_of', { current: data.meta.current_page, last: data.meta.last_page }) }}</h2>
         </div>
         <div class="actions">
           <button
@@ -151,7 +161,7 @@ async function goToPage(nextPage: number) {
             :disabled="data.meta.current_page <= 1"
             @click="goToPage(data.meta.current_page - 1)"
           >
-            Previous
+            {{ t('common.previous') }}
           </button>
           <button
             class="button button--ghost"
@@ -159,7 +169,7 @@ async function goToPage(nextPage: number) {
             :disabled="data.meta.current_page >= data.meta.last_page"
             @click="goToPage(data.meta.current_page + 1)"
           >
-            Next
+            {{ t('common.next') }}
           </button>
         </div>
       </div>

@@ -31,6 +31,7 @@ Use this checklist after each non-trivial change.
 - Was `README.md` updated if setup or runtime changed?
 - Was `docs/architecture.md` updated if boundaries changed?
 - Was `docs/openapi.yaml` updated if API behavior changed?
+- Was `docs/payments.md` updated if payment flow, provider config, webhook handling or currency strategy changed?
 - Was `docs/hosting-deployment.md` updated if production or hosting assumptions changed?
 - Was `docs/documentation-maintenance.md` updated if documentation workflow changed?
 

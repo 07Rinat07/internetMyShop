@@ -12,6 +12,7 @@ After every meaningful change, the relevant documentation must be updated in the
 
 - `README.md`
 - `docs/hosting-deployment.md`
+- `docs/payments.md`
 
 ### Architecture and engineering rules
 
@@ -23,6 +24,7 @@ After every meaningful change, the relevant documentation must be updated in the
 ### API and contract documentation
 
 - `docs/openapi.yaml`
+- `docs/payments.md`
 
 ## Update matrix
 
@@ -41,6 +43,7 @@ Update:
 - `docs/architecture.md`
 - `docs/openapi.yaml` if API auth contract changed
 - `docs/hosting-deployment.md`
+- `docs/payments.md` if payment-related env or callback URLs changed
 
 ### If you change API routes, request payloads, response payloads or auth requirements
 
@@ -49,6 +52,18 @@ Update:
 - `docs/openapi.yaml`
 - `README.md` if the public usage or testing flow changed
 - `docs/architecture.md` if boundaries changed
+- `docs/payments.md` if checkout or payment contracts changed
+
+### If you change payment providers, webhook verification, payment statuses or sandbox credentials
+
+Update:
+
+- `README.md`
+- `docs/architecture.md`
+- `docs/openapi.yaml`
+- `docs/payments.md`
+- `docs/hosting-deployment.md` if deployment or secret handling changed
+- `docs/review-checklist.md` if the team review expectations for payment rollout changed
 
 ### If you change admin behavior, CMS behavior, MoonShine resources or storefront text management
 
@@ -121,4 +136,5 @@ A change is not complete if:
 - commands changed but README was not updated;
 - deployment assumptions changed but hosting docs were not updated;
 - API changed but OpenAPI was not updated;
+- payment integration changed but `docs/payments.md` was not updated;
 - auth or role logic changed but architecture docs were not updated.

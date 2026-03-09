@@ -158,6 +158,7 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://app.example.com
 FRONTEND_URL=https://shop.example.com
+TRUSTED_HOSTS=app.example.com,shop.example.com
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -171,7 +172,59 @@ QUEUE_CONNECTION=sync
 SESSION_DRIVER=file
 SESSION_DOMAIN=.example.com
 SANCTUM_STATEFUL_DOMAINS=shop.example.com,app.example.com
+
+PAYMENT_PROVIDER=paypal
+STORE_CURRENCY=KZT
+PAYMENT_STATUS_BASE_URL=https://shop.example.com/payments
 ```
+
+Then add provider-specific variables for the selected gateway.
+
+### 6.1 PayPal live example
+
+```dotenv
+PAYPAL_SANDBOX=false
+PAYPAL_BASE_URL=https://api-m.paypal.com
+PAYPAL_CURRENCY=USD
+PAYPAL_EXCHANGE_RATE=510
+PAYPAL_CLIENT_ID=live_client_id
+PAYPAL_CLIENT_SECRET=live_client_secret
+PAYPAL_MERCHANT_ID=
+PAYPAL_WEBHOOK_ID=live_webhook_id
+```
+
+### 6.2 Real provider checklist
+
+If you switch from the default development PayPal sandbox to a real payment provider, update the provider credentials, callback settings and currency strategy in the same release.
+
+Minimum checklist:
+
+- `PAYMENT_PROVIDER` must point to a registered backend driver code;
+- `PAYMENT_STATUS_BASE_URL` must point to the public storefront payment status page;
+- webhook URL must point to the public backend host:
+  - `https://app.example.com/api/v1/payments/webhook/{provider}`
+- return/cancel URLs must point back to the storefront host;
+- provider secrets must live only in backend env or server secret storage;
+- if the provider supports `KZT`, prefer provider currency `KZT` and exchange rate `1`;
+- if the provider charges in another currency, document and verify the conversion strategy before go-live.
+
+Examples for a non-PayPal provider usually look like:
+
+```dotenv
+PAYMENT_PROVIDER=freedompay
+FREEDOMPAY_BASE_URL=https://provider.example
+FREEDOMPAY_MERCHANT_ID=merchant_id
+FREEDOMPAY_SECRET_KEY=secret_key
+FREEDOMPAY_CURRENCY=KZT
+FREEDOMPAY_EXCHANGE_RATE=1
+```
+
+Every such provider change must also update:
+
+- `docs/payments.md`
+- `docs/openapi.yaml`
+- `README.md`
+- this deployment guide
 
 ### 7. Prepare storage and database
 
@@ -190,6 +243,14 @@ Important:
 - do not run full demo seed on production unless you intentionally want demo accounts and demo catalog data;
 - `StorefrontSiteContentSeeder` is safe for filling default storefront text records;
 - demo full seed is suitable for local and staging, not for public production.
+- payment webhooks must point to the public backend host, not to the Nuxt host.
+
+After changing payment env values in production, always refresh caches:
+
+```bash
+php artisan optimize:clear
+php artisan config:cache
+```
 
 ### 8. Build Nuxt frontend for production
 
@@ -373,10 +434,8 @@ That production Docker stack is not yet part of this repository.
 Before each production release:
 
 ```bash
-composer lint
-composer analyse
-composer test
-npm run web:quality
+php scripts/app.php verify:all
+php scripts/app.php verify:e2e
 ```
 
 Then:
@@ -395,6 +454,13 @@ sudo systemctl restart php8.4-fpm
 sudo systemctl restart internetmyshop-nuxt
 sudo systemctl reload nginx
 ```
+
+If the release changes payment provider credentials, callback URLs, signature secrets or currency strategy, add these release-only checks before enabling traffic:
+
+1. create a real or staging payment manually;
+2. confirm the webhook reaches `/api/v1/payments/webhook/{provider}`;
+3. confirm the payment status page shows the final state;
+4. confirm the related order is marked `Paid` only after backend confirmation.
 
 ## Backups
 

@@ -9,6 +9,7 @@ type ProxyRule = {
 }
 
 const proxyRules: ProxyRule[] = [
+  { method: 'GET', pattern: /^home$/, includeAuth: false, includeBasket: false },
   { method: 'GET', pattern: /^catalog$/, includeAuth: false, includeBasket: false },
   { method: 'GET', pattern: /^categories\/[^/]+$/, includeAuth: false, includeBasket: false },
   { method: 'GET', pattern: /^brands\/[^/]+$/, includeAuth: false, includeBasket: false },
@@ -16,6 +17,9 @@ const proxyRules: ProxyRule[] = [
   { method: 'GET', pattern: /^basket$/, includeBasket: true },
   { method: 'DELETE', pattern: /^basket$/, includeBasket: true },
   { method: 'POST', pattern: /^basket\/checkout$/, includeBasket: true },
+  { method: 'GET', pattern: /^payments\/[A-Za-z0-9-]+$/, includeAuth: false, includeBasket: false },
+  { method: 'GET', pattern: /^payments\/[A-Za-z0-9-]+\/checkout-config$/, includeAuth: false, includeBasket: false },
+  { method: 'POST', pattern: /^payments\/[A-Za-z0-9-]+\/capture$/, includeAuth: false, includeBasket: false },
   { method: 'POST', pattern: /^basket\/items$/, includeBasket: true },
   { method: 'PATCH', pattern: /^basket\/items\/\d+$/, includeBasket: true },
   { method: 'DELETE', pattern: /^basket\/items\/\d+$/, includeBasket: true },

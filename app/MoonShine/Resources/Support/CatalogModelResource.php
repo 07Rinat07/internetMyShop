@@ -15,8 +15,10 @@ abstract class CatalogModelResource extends ModelResource
 
     abstract protected function imageDirectory(): string;
 
-    public function uploadField(string $label = 'Изображение'): Image
+    public function uploadField(string $label = ''): Image
     {
+        $label = $label !== '' ? $label : __('admin.fields.image');
+
         return Image::make($label, 'image')
             ->disk('public')
             ->dir('catalog/'.$this->imageDirectory().'/source')
@@ -26,8 +28,10 @@ abstract class CatalogModelResource extends ModelResource
             ->modifyRawValue(static fn (?string $raw): string => $raw ?? '');
     }
 
-    public function previewField(string $label = 'Изображение', string $variant = 'thumb'): Image
+    public function previewField(string $label = '', string $variant = 'thumb'): Image
     {
+        $label = $label !== '' ? $label : __('admin.fields.image');
+
         return Image::make($label, 'image')
             ->disk('public')
             ->dir('catalog/'.$this->imageDirectory().'/'.$variant)

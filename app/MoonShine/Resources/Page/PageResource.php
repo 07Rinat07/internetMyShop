@@ -29,7 +29,7 @@ class PageResource extends ModelResource
 {
     protected string $model = Page::class;
 
-    protected string $title = 'Страницы';
+    protected string $title = '';
 
     protected string $column = 'name';
 
@@ -39,6 +39,7 @@ class PageResource extends ModelResource
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.page.title');
         $this->alias('pages');
     }
 
@@ -58,10 +59,10 @@ class PageResource extends ModelResource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Название', 'name')->sortable(),
-            Text::make('Слаг', 'slug'),
-            Text::make('Родитель', formatted: static fn (Page $page) => $page->parent?->name ?? 'Корневая страница'),
-            Text::make('Контент', formatted: static fn (Page $page) => mb_strimwidth(trim(strip_tags((string) $page->content)), 0, 120, '...')),
+            Text::make(__('admin.fields.name'), 'name')->sortable(),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.parent'), formatted: static fn (Page $page) => $page->parent?->name ?? __('admin.common.root_page')),
+            Text::make(__('admin.fields.content'), formatted: static fn (Page $page) => mb_strimwidth(trim(strip_tags((string) $page->content)), 0, 120, '...')),
         ];
     }
 
@@ -71,14 +72,14 @@ class PageResource extends ModelResource
             Box::make([
                 ID::make(),
                 Flex::make([
-                    Text::make('Название', 'name')->required(),
-                    Text::make('Слаг', 'slug')->required(),
+                    Text::make(__('admin.fields.name'), 'name')->required(),
+                    Text::make(__('admin.fields.slug'), 'slug')->required(),
                 ]),
-                Select::make('Родительская страница', 'parent_id')
+                Select::make(__('admin.resources.page.parent_page'), 'parent_id')
                     ->options($this->parentOptions((int) ($this->getItem()?->id ?? 0)))
                     ->default(0)
                     ->required(),
-                Textarea::make('Контент', 'content')
+                Textarea::make(__('admin.fields.content'), 'content')
                     ->unescape()
                     ->required()
                     ->onApply(static function (Page $page, mixed $value): Page {
@@ -94,10 +95,10 @@ class PageResource extends ModelResource
     {
         return [
             ID::make(),
-            Text::make('Название', 'name'),
-            Text::make('Слаг', 'slug'),
-            Text::make('Родитель', formatted: static fn (Page $page) => $page->parent?->name ?? 'Корневая страница'),
-            Textarea::make('Контент', 'content')->unescape(),
+            Text::make(__('admin.fields.name'), 'name'),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.parent'), formatted: static fn (Page $page) => $page->parent?->name ?? __('admin.common.root_page')),
+            Textarea::make(__('admin.fields.content'), 'content')->unescape(),
         ];
     }
 
@@ -138,7 +139,7 @@ class PageResource extends ModelResource
         $page = $item->getOriginal();
 
         if ($page->children()->exists()) {
-            throw new RuntimeException('Нельзя удалить страницу, у которой есть дочерние страницы');
+            throw new RuntimeException(__('admin.resources.page.cannot_delete_with_children'));
         }
 
         app(PageContentManager::class)->cleanup((string) $page->content);
@@ -148,7 +149,7 @@ class PageResource extends ModelResource
 
     private function parentOptions(int $currentId = 0): array
     {
-        return [0 => 'Корневая страница'] + Page::query()
+        return [0 => __('admin.common.root_page')] + Page::query()
             ->where('parent_id', 0)
             ->when($currentId > 0, static fn ($query) => $query->whereKeyNot($currentId))
             ->orderBy('name')

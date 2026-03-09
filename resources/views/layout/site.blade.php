@@ -18,7 +18,7 @@
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="{{ asset('js/site.js') }}" defer></script>
 </head>
-<body class="site-body">
+<body class="site-body" data-request-failed="{{ __('site.messages.request_failed') }}">
 @php($currentLocale = app()->getLocale())
 @php($previousUrl = url()->previous())
 @php($backUrl = filled($previousUrl) && $previousUrl !== url()->current() ? $previousUrl : route(request()->routeIs('user.index') ? 'index' : 'user.index'))
@@ -148,11 +148,22 @@
     </main>
 
     <footer class="site-footer">
-        <div>
-            <strong>{{ __('site.footer.title') }}</strong>
-            <p>{{ __('site.footer.description') }}</p>
+        <div class="site-footer__brand">
+            <a class="site-brand site-brand--footer" href="{{ route('index') }}">
+                <span class="site-brand__mark">IM</span>
+                <span>
+                    <strong>{{ __('site.footer.title') }}</strong>
+                    <small>{{ __('site.header.badge') }}</small>
+                </span>
+            </a>
+
+            <div class="site-footer__copy">
+                <span class="site-pill">{{ __('site.header.badge') }}</span>
+                <p>{{ __('site.footer.description') }}</p>
+            </div>
         </div>
-        <small>{{ __('site.footer.note') }}</small>
+
+        <small class="site-footer__note">{{ __('site.footer.note') }}</small>
     </footer>
 </div>
 </body>

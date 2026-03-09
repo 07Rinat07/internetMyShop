@@ -7,6 +7,7 @@ export function createEmptyCheckoutPayload(): CheckoutPayload {
     phone: '',
     address: '',
     comment: '',
+    payment_method: 'online_card',
   }
 }
 

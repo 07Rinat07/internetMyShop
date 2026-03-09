@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Http\Resources\Api\V1\Concerns\ResolvesCatalogImageUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class BrandResource extends JsonResource
 {
+    use ResolvesCatalogImageUrl;
+
     public function toArray($request)
     {
         return [
@@ -16,7 +19,7 @@ class BrandResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'content' => $this->content,
-            'image' => $this->image,
+            'image' => $this->catalogImageUrl($this->image, 'brand', 'thumb'),
             'products_count' => $this->whenCounted('products'),
         ];
     }

@@ -28,7 +28,7 @@ class BrandResource extends CatalogModelResource
 {
     protected string $model = Brand::class;
 
-    protected string $title = 'Бренды';
+    protected string $title = '';
 
     protected string $column = 'name';
 
@@ -38,6 +38,7 @@ class BrandResource extends CatalogModelResource
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.brand.title');
         $this->alias('brands');
     }
 
@@ -57,10 +58,10 @@ class BrandResource extends CatalogModelResource
     {
         return [
             ID::make()->sortable(),
-            $this->previewField('Фото')->columnSelection(false),
-            Text::make('Название', 'name')->sortable(),
-            Text::make('Слаг', 'slug'),
-            Text::make('Товаров', formatted: static fn (Brand $brand) => (string) $brand->products()->count()),
+            $this->previewField(__('admin.fields.photo'))->columnSelection(false),
+            Text::make(__('admin.fields.name'), 'name')->sortable(),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.products_count'), formatted: static fn (Brand $brand) => (string) $brand->products()->count()),
         ];
     }
 
@@ -70,10 +71,10 @@ class BrandResource extends CatalogModelResource
             Box::make([
                 ID::make(),
                 Flex::make([
-                    Text::make('Название', 'name')->required(),
-                    Slug::make('Слаг', 'slug')->from('name')->live(),
+                    Text::make(__('admin.fields.name'), 'name')->required(),
+                    Slug::make(__('admin.fields.slug'), 'slug')->from('name')->live(),
                 ]),
-                Textarea::make('Описание', 'content')->nullable(),
+                Textarea::make(__('admin.fields.description'), 'content')->nullable(),
                 $this->uploadField(),
             ]),
         ];
@@ -83,11 +84,11 @@ class BrandResource extends CatalogModelResource
     {
         return [
             ID::make(),
-            $this->previewField('Изображение', 'image'),
-            Text::make('Название', 'name'),
-            Text::make('Слаг', 'slug'),
-            Text::make('Товаров', formatted: static fn (Brand $brand) => (string) $brand->products()->count()),
-            Textarea::make('Описание', 'content'),
+            $this->previewField(__('admin.fields.image'), 'image'),
+            Text::make(__('admin.fields.name'), 'name'),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.products_count'), formatted: static fn (Brand $brand) => (string) $brand->products()->count()),
+            Textarea::make(__('admin.fields.description'), 'content'),
         ];
     }
 
@@ -125,7 +126,7 @@ class BrandResource extends CatalogModelResource
     protected function beforeDeleting(DataWrapperContract $item): DataWrapperContract
     {
         if ($item->getOriginal()->products()->exists()) {
-            throw new RuntimeException('Нельзя удалить бренд, у которого есть товары');
+            throw new RuntimeException(__('admin.resources.brand.cannot_delete_with_products'));
         }
 
         return parent::beforeDeleting($item);

@@ -20,6 +20,8 @@ class OrderController extends Controller {
         $this->authorize('view', $order);
 
         $statuses = Order::STATUSES;
+        $order->load('payments');
+
         return view('user.order.show', compact('order', 'statuses'));
     }
 }

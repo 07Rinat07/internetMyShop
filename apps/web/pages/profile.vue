@@ -7,6 +7,7 @@ definePageMeta({
 
 const api = useApiClient()
 const auth = useAuth()
+const { t } = useLocale()
 
 await auth.ensureUser()
 
@@ -38,14 +39,14 @@ async function submitProfile() {
       body: form,
     })
 
-    feedback.value = 'Profile saved through the API.'
+    feedback.value = t('profile_page.saved')
     form.title = ''
     form.phone = ''
     form.address = ''
     form.comment = ''
     await refresh()
   } catch (requestError) {
-    errorMessage.value = getApiErrorMessage(requestError, 'Failed to save profile.')
+    errorMessage.value = getApiErrorMessage(requestError, t('profile_page.save_failed'))
   } finally {
     submitting.value = false
   }
@@ -57,31 +58,30 @@ async function removeProfile(profileId: number) {
 
   try {
     await api(`/profiles/${profileId}`, { method: 'DELETE' })
-    feedback.value = 'Profile deleted.'
+    feedback.value = t('profile_page.deleted')
     await refresh()
   } catch (requestError) {
-    errorMessage.value = getApiErrorMessage(requestError, 'Failed to delete profile.')
+    errorMessage.value = getApiErrorMessage(requestError, t('profile_page.delete_failed'))
   }
 }
 </script>
 
 <template>
   <section class="hero">
-    <span class="hero__eyebrow">Account</span>
-    <h1>Shipping profiles now run on the API contract.</h1>
+    <span class="hero__eyebrow">{{ t('profile_page.hero_eyebrow') }}</span>
+    <h1>{{ t('profile_page.hero_title') }}</h1>
     <p>
-      The frontend restores the authenticated user from Sanctum and manages profile CRUD against
-      the protected <span class="mono">/profiles</span> endpoints.
+      {{ t('profile_page.hero_description') }}
     </p>
 
     <div class="metric-row">
       <div class="metric">
-        <span class="muted">Signed in as</span>
-        <strong>{{ auth.user.value?.name || 'Unknown user' }}</strong>
+        <span class="muted">{{ t('profile_page.signed_in_as') }}</span>
+        <strong>{{ auth.user.value?.name || t('common.unknown_user') }}</strong>
       </div>
       <div class="metric">
-        <span class="muted">Email</span>
-        <strong class="mono">{{ auth.user.value?.email || 'n/a' }}</strong>
+        <span class="muted">{{ t('profile_page.email') }}</span>
+        <strong class="mono">{{ auth.user.value?.email || t('common.no_email') }}</strong>
       </div>
     </div>
   </section>
@@ -89,40 +89,40 @@ async function removeProfile(profileId: number) {
   <section class="section split">
     <article class="card stack">
       <div>
-        <span class="eyebrow">New profile</span>
-        <h2>Create delivery identity</h2>
+        <span class="eyebrow">{{ t('profile_page.new_profile') }}</span>
+        <h2>{{ t('profile_page.create_identity') }}</h2>
       </div>
 
       <form class="form-grid" @submit.prevent="submitProfile">
         <div class="form-grid form-grid--two">
           <div class="field">
-            <label for="profile-title">Title</label>
+            <label for="profile-title">{{ t('profile_page.title') }}</label>
             <input id="profile-title" v-model="form.title" class="input" required>
           </div>
           <div class="field">
-            <label for="profile-name">Name</label>
+            <label for="profile-name">{{ t('profile_page.name') }}</label>
             <input id="profile-name" v-model="form.name" class="input" required>
           </div>
         </div>
 
         <div class="form-grid form-grid--two">
           <div class="field">
-            <label for="profile-email">Email</label>
+            <label for="profile-email">{{ t('profile_page.email') }}</label>
             <input id="profile-email" v-model="form.email" class="input" type="email" required>
           </div>
           <div class="field">
-            <label for="profile-phone">Phone</label>
+            <label for="profile-phone">{{ t('profile_page.phone') }}</label>
             <input id="profile-phone" v-model="form.phone" class="input" required>
           </div>
         </div>
 
         <div class="field">
-          <label for="profile-address">Address</label>
+          <label for="profile-address">{{ t('profile_page.address') }}</label>
           <textarea id="profile-address" v-model="form.address" class="textarea" required></textarea>
         </div>
 
         <div class="field">
-          <label for="profile-comment">Comment</label>
+          <label for="profile-comment">{{ t('profile_page.comment') }}</label>
           <textarea id="profile-comment" v-model="form.comment" class="textarea"></textarea>
         </div>
 
@@ -134,7 +134,7 @@ async function removeProfile(profileId: number) {
         </div>
 
         <button class="button button--accent" type="submit" :disabled="submitting">
-          {{ submitting ? 'Saving...' : 'Save profile' }}
+          {{ submitting ? t('common.saving') : t('profile_page.save_button') }}
         </button>
       </form>
     </article>
@@ -142,22 +142,22 @@ async function removeProfile(profileId: number) {
     <article class="card stack">
       <div class="section__header">
         <div>
-          <span class="eyebrow">Saved profiles</span>
-          <h2>Current API records</h2>
+          <span class="eyebrow">{{ t('profile_page.saved_profiles') }}</span>
+          <h2>{{ t('profile_page.current_records') }}</h2>
         </div>
         <button class="button button--ghost" type="button" @click="refresh()">
-          Refresh
+          {{ t('common.refresh') }}
         </button>
       </div>
 
       <div v-if="error" class="status status--error">
-        {{ getApiErrorMessage(error, 'Failed to load profiles.') }}
+        {{ getApiErrorMessage(error, t('profile_page.load_failed')) }}
       </div>
       <div v-else-if="pending" class="card card--compact">
-        Loading profiles...
+        {{ t('profile_page.loading') }}
       </div>
       <div v-else-if="!data?.data.length" class="empty-state">
-        <p>No profiles yet. Create the first delivery profile on the left.</p>
+        <p>{{ t('profile_page.empty') }}</p>
       </div>
       <div v-else class="list">
         <article
@@ -175,7 +175,7 @@ async function removeProfile(profileId: number) {
               type="button"
               @click="removeProfile(profile.id)"
             >
-              Delete
+              {{ t('common.delete') }}
             </button>
           </div>
 

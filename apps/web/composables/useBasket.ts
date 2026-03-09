@@ -1,4 +1,4 @@
-import type { ApiEnvelope, Basket, CheckoutPayload, OrderDetail } from '~/types/api'
+import type { ApiEnvelope, Basket, CheckoutPayload, CheckoutResponse } from '~/types/api'
 
 const emptyBasket = (): Basket => ({
   id: 0,
@@ -70,7 +70,7 @@ export function useBasket() {
     pending.value = true
 
     try {
-      const response = await api<ApiEnvelope<OrderDetail>>('/basket/checkout', {
+      const response = await api<ApiEnvelope<CheckoutResponse>>('/basket/checkout', {
         method: 'POST',
         body: payload,
       })

@@ -30,14 +30,14 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $item->name }}</td>
-                        <td>@price($item->price) {{ __('site.product.currency') }}</td>
+                        <td>@price($item->price) {{ $order->currency }}</td>
                         <td>{{ $item->quantity }}</td>
-                        <td>@price($item->cost) {{ __('site.product.currency') }}</td>
+                        <td>@price($item->cost) {{ $order->currency }}</td>
                     </tr>
                 @endforeach
                 <tr>
                     <th colspan="4" class="text-right">{{ __('site.table.total') }}</th>
-                    <th>@price($order->amount) {{ __('site.product.currency') }}</th>
+                    <th>@price($order->amount) {{ $order->currency }}</th>
                 </tr>
             </table>
         </div>
@@ -54,6 +54,10 @@
                 <strong>{{ $order->name }}</strong>
             </div>
             <div class="detail-list__item">
+                <span>{{ __('site.basket.payment_method') }}</span>
+                <strong>{{ $order->paymentMethodEnum()->label() }}</strong>
+            </div>
+            <div class="detail-list__item">
                 <span>{{ __('site.forms.email') }}</span>
                 <strong><a href="mailto:{{ $order->email }}">{{ $order->email }}</a></strong>
             </div>
@@ -61,6 +65,12 @@
                 <span>{{ __('site.forms.phone') }}</span>
                 <strong>{{ $order->phone }}</strong>
             </div>
+            @if ($order->payments->isNotEmpty())
+                <div class="detail-list__item">
+                    <span>{{ __('site.payments.status') }}</span>
+                    <strong>{{ $order->payments->sortByDesc('created_at')->first()->statusEnum()->label() }}</strong>
+                </div>
+            @endif
             <div class="detail-list__item">
                 <span>{{ __('site.forms.address') }}</span>
                 <strong>{{ $order->address }}</strong>

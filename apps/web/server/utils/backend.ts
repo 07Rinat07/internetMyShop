@@ -9,6 +9,7 @@ import {
   setCookie,
   setResponseStatus,
 } from 'h3'
+import { normalizeLocale } from '../../utils/locale'
 
 const accessTokenCookie = 'ims_access_token'
 const basketCookie = 'ims_basket_id'
@@ -34,8 +35,15 @@ function buildBackendHeaders(
 ): Headers {
   const headers = new Headers()
   const contentType = getRequestHeader(event, 'content-type')
+  const locale = normalizeLocale(
+    getRequestHeader(event, 'x-locale')
+    || getCookie(event, 'locale')
+    || '',
+  )
+  const forwardedCookies: string[] = []
 
   headers.set('Accept', 'application/json')
+  headers.set('X-Locale', locale)
 
   if (contentType) {
     headers.set('Content-Type', contentType)
@@ -53,8 +61,16 @@ function buildBackendHeaders(
     const basketId = getCookie(event, basketCookie)
 
     if (basketId) {
-      headers.append('Cookie', `basket_id=${basketId}`)
+      forwardedCookies.push(`basket_id=${encodeURIComponent(basketId)}`)
     }
+  }
+
+  if (locale) {
+    forwardedCookies.push(`locale=${encodeURIComponent(locale)}`)
+  }
+
+  if (forwardedCookies.length > 0) {
+    headers.set('Cookie', forwardedCookies.join('; '))
   }
 
   return headers

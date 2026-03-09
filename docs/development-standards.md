@@ -35,6 +35,7 @@ This project is maintained with three priorities:
 
 - Validate all user input through explicit rules.
 - Never trust client-sent ownership, status, amount, or role fields.
+- Never trust browser return URLs or frontend callbacks as proof of successful payment.
 - File uploads must validate mime type, size, and storage path handling.
 - Auth and permission changes must include tests.
 - For browser auth, prefer first-party `HttpOnly` cookie flows or a BFF boundary over client-readable bearer token storage.
@@ -60,6 +61,7 @@ Update docs in the same change when you modify:
 - setup or runtime prerequisites;
 - environment variables;
 - API routes or payloads;
+- payment provider configuration, webhook flow, or payment status mapping;
 - auth flow;
 - admin routes or admin behavior;
 - storefront content management behavior;
@@ -73,6 +75,7 @@ The minimum documentation set to consider on every meaningful change is:
 - `README.md`
 - `docs/architecture.md`
 - `docs/openapi.yaml`
+- `docs/payments.md`
 - `docs/hosting-deployment.md`
 - `docs/documentation-maintenance.md`
 

@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: internetMyShop API
-  version: 1.3.0
+  version: 1.5.1
   contact:
     name: Rinat Sarmuldin
     email: ura07srr@gmail.com
@@ -20,7 +20,8 @@ info:
     - catalog endpoints are public;
     - external API clients authenticate through Laravel Sanctum bearer tokens;
     - the Nuxt browser client reaches this API through its BFF layer;
-    - basket endpoints are guest-friendly and rely on cookie-backed basket state.
+    - basket endpoints are guest-friendly and rely on cookie-backed basket state;
+    - payment success is confirmed by backend finalization and verified webhooks, not by browser return alone.
 servers:
   - url: /api/v1
     description: Same-host API base for local and Docker Swagger UI
@@ -39,6 +40,8 @@ tags:
     description: Saved delivery profiles for authenticated users
   - name: Orders
     description: Order history for the authenticated owner
+  - name: Payments
+    description: Payment session status and provider webhook endpoints
 paths:
   /auth/register:
     post:
@@ -141,6 +144,21 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/Brand'
+  /home:
+    get:
+      tags: [Catalog]
+      summary: Get storefront home payload
+      operationId: getStorefrontHome
+      responses:
+        '200':
+          description: Home payload with featured storefront sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/HomePayload'
   /categories/{category}:
     get:
       tags: [Catalog]
@@ -306,7 +324,15 @@ paths:
   /basket/checkout:
     post:
       tags: [Basket]
-      summary: Create order from current basket
+      summary: Create order and optionally initiate payment from current basket
+      description: |
+        Creates the local order first.
+
+        When `payment_method=online_card`, the backend also creates a local payment
+        attempt and initializes the active provider session.
+
+        Storefronts should treat the returned payment object as the source for the
+        next checkout step, but must not treat browser redirects as proof of success.
       operationId: checkoutBasket
       security:
         - bearerAuth: []
@@ -319,16 +345,155 @@ paths:
               $ref: '#/components/schemas/CheckoutRequest'
       responses:
         '201':
-          description: Created order payload
+          description: Created order payload with optional payment session
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   data:
-                    $ref: '#/components/schemas/OrderDetail'
+                    $ref: '#/components/schemas/CheckoutResponse'
         '422':
           description: Basket is empty or validation failed
+        '502':
+          description: Payment provider session could not be created
+  /payments/{payment}:
+    get:
+      tags: [Payments]
+      summary: Get public payment status by opaque payment id
+      description: |
+        Returns the current public payment state plus the related order summary.
+
+        This endpoint is suitable for payment status pages shown after checkout or
+        after provider return.
+      operationId: getPaymentStatus
+      parameters:
+        - in: path
+          name: payment
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment status payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentDetail'
+        '404':
+          description: Payment not found
+  /payments/{payment}/checkout-config:
+    get:
+      tags: [Payments]
+      summary: Get hosted checkout configuration for a payment attempt
+      description: |
+        Returns provider checkout configuration used by storefront UIs to render
+        hosted payment fields or widgets.
+
+        Current storefront implementations are optimized for `hosted_fields`.
+      operationId: getPaymentCheckoutConfig
+      parameters:
+        - in: path
+          name: payment
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Hosted payment configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentCheckoutConfig'
+        '404':
+          description: Payment not found
+  /payments/{payment}/capture:
+    post:
+      tags: [Payments]
+      summary: Perform server-side capture for the current payment attempt
+      description: |
+        Performs server-to-server payment finalization for the active payment attempt.
+
+        This endpoint is typically called after hosted card submission or provider
+        approval callback data has been received by the storefront.
+      operationId: capturePayment
+      parameters:
+        - in: path
+          name: payment
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider_payment_id:
+                  type: string
+                  nullable: true
+                payer_id:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Updated payment payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentDetail'
+        '422':
+          description: Capture failed
+  /payments/webhook/{provider}:
+    post:
+      tags: [Payments]
+      summary: Receive provider webhook for payment state changes
+      description: |
+        Public backend webhook endpoint for provider notifications.
+
+        Providers must call the Laravel backend host, not the Nuxt storefront host.
+      operationId: handlePaymentWebhook
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            example: paypal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Webhook acknowledged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      payment_id:
+                        type: string
+                      status:
+                        type: string
+        '422':
+          description: Invalid webhook signature or payload
   /profiles:
     get:
       tags: [Profiles]
@@ -735,6 +900,31 @@ components:
         label:
           type: string
           nullable: true
+    PaymentStatus:
+      type: object
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+          nullable: true
+    PaymentProvider:
+      type: object
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+          nullable: true
+    PaymentMethod:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [online_card, manager_confirmation]
+        label:
+          type: string
+          nullable: true
     OrderSummary:
       type: object
       properties:
@@ -742,8 +932,12 @@ components:
           type: integer
         amount:
           type: number
+        currency:
+          type: string
         status:
           $ref: '#/components/schemas/OrderStatus'
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethod'
         items_count:
           type: integer
         created_at:
@@ -774,6 +968,165 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/OrderItem'
+    PaymentDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+          description: Amount that the provider charges in provider currency.
+        currency:
+          type: string
+          description: Provider charge currency.
+        store_amount:
+          type: number
+          description: Original storefront order amount before provider conversion.
+        store_currency:
+          type: string
+          description: Storefront order currency.
+        conversion_rate:
+          type: number
+          description: Exchange rate used when provider currency differs from storefront currency.
+        checkout_flow:
+          type: string
+          enum: [hosted_fields, redirect]
+          description: Storefront continuation model for this payment.
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        provider:
+          $ref: '#/components/schemas/PaymentProvider'
+        redirect_url:
+          type: string
+          nullable: true
+          description: Redirect target for providers that require external checkout pages.
+        failure_reason:
+          type: string
+          nullable: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        order:
+          $ref: '#/components/schemas/OrderSummary'
+      example:
+        id: 8e42f652-df13-4f57-b5a7-f8a3fd1d4ba7
+        amount: 5.88
+        currency: USD
+        store_amount: 3000
+        store_currency: KZT
+        conversion_rate: 510
+        checkout_flow: hosted_fields
+        status:
+          code: pending
+          label: Pending confirmation
+        provider:
+          code: paypal
+          label: PayPal
+        redirect_url: null
+        failure_reason: null
+        paid_at: null
+        created_at: '2026-03-09T10:00:00Z'
+        updated_at: '2026-03-09T10:00:00Z'
+        order:
+          id: 101
+          amount: 3000
+          currency: KZT
+          status:
+            code: 0
+            label: New
+          payment_method:
+            code: online_card
+            label: Online card
+          items_count: 2
+          created_at: '2026-03-09T10:00:00Z'
+          updated_at: '2026-03-09T10:00:00Z'
+    CheckoutResponse:
+      type: object
+      properties:
+        order:
+          $ref: '#/components/schemas/OrderDetail'
+        payment:
+          allOf:
+            - $ref: '#/components/schemas/PaymentDetail'
+          nullable: true
+    PaymentCheckoutConfig:
+      type: object
+      properties:
+        payment_id:
+          type: string
+        flow:
+          type: string
+          enum: [hosted_fields]
+          description: Hosted storefront flow currently supported by project UIs.
+        status_url:
+          type: string
+        provider_payment_id:
+          type: string
+          nullable: true
+        capture_url:
+          type: string
+          nullable: true
+        sdk:
+          type: object
+          nullable: true
+          properties:
+            namespace:
+              type: string
+            client_id:
+              type: string
+            client_token:
+              type: string
+            currency:
+              type: string
+            intent:
+              type: string
+            components:
+              type: array
+              items:
+                type: string
+            merchant_id:
+              type: string
+              nullable: true
+            script_url:
+              type: string
+        sandbox_card:
+          type: object
+          nullable: true
+          properties:
+            number:
+              type: string
+            expiry:
+              type: string
+            cvv:
+              type: string
+            postal_code:
+              type: string
+      example:
+        payment_id: 8e42f652-df13-4f57-b5a7-f8a3fd1d4ba7
+        flow: hosted_fields
+        status_url: https://shop.example.com/payments/8e42f652-df13-4f57-b5a7-f8a3fd1d4ba7
+        provider_payment_id: PAYPAL-ORDER-1
+        capture_url: https://app.example.com/api/v1/payments/8e42f652-df13-4f57-b5a7-f8a3fd1d4ba7/capture
+        sdk:
+          namespace: paypal
+          client_id: sandbox-client-id
+          client_token: sandbox-client-token
+          currency: USD
+          intent: capture
+          components:
+            - buttons
+            - card-fields
+          merchant_id: ''
+          script_url: https://www.paypal.com/sdk/js?client-id=sandbox-client-id
     PaginationMeta:
       type: object
       properties:
@@ -832,6 +1185,38 @@ components:
           $ref: '#/components/schemas/PaginationMeta'
         links:
           $ref: '#/components/schemas/PaginationLinks'
+    HomeEditorial:
+      type: object
+      properties:
+        eyebrow:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        cta:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+    HomePayload:
+      type: object
+      properties:
+        new:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductListItem'
+        hit:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductListItem'
+        sale:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductListItem'
+        editorials:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeEditorial'
     BasketItemStoreRequest:
       type: object
       required: [product_id]
@@ -863,6 +1248,17 @@ components:
         comment:
           type: string
           nullable: true
+        payment_method:
+          type: string
+          enum: [online_card, manager_confirmation]
+          default: manager_confirmation
+      example:
+        name: Customer Name
+        email: customer@example.com
+        phone: '+77000000000'
+        address: Delivery address
+        comment: Optional note
+        payment_method: online_card
     ProfileUpsertRequest:
       type: object
       required: [title, name, email, phone, address]

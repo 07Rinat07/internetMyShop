@@ -3,7 +3,10 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BasketController;
 use App\Http\Controllers\Api\V1\CatalogController;
+use App\Http\Controllers\Api\V1\HomeController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PaymentWebhookController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +42,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
     });
 
+    Route::get('home', HomeController::class)->name('home');
     Route::get('catalog', [CatalogController::class, 'index'])->name('catalog.index');
     Route::get('categories/{category:slug}', [CatalogController::class, 'category'])->name('categories.show');
     Route::get('brands/{brand:slug}', [CatalogController::class, 'brand'])->name('brands.show');
@@ -51,5 +55,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('basket/items/{product}', [BasketController::class, 'destroyItem'])->name('basket.items.destroy');
         Route::delete('basket', [BasketController::class, 'clear'])->name('basket.clear');
         Route::post('basket/checkout', [BasketController::class, 'checkout'])->name('basket.checkout');
+        Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::get('payments/{payment}/checkout-config', [PaymentController::class, 'checkoutConfig'])->name('payments.checkout-config');
+        Route::post('payments/{payment}/capture', [PaymentController::class, 'capture'])->name('payments.capture');
     });
+
+    Route::post('payments/webhook/{provider}', [PaymentWebhookController::class, 'handle'])->name('payments.webhook');
 });

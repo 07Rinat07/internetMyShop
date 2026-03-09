@@ -10,7 +10,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
           name: 'description',
-          content: 'Separate Nuxt frontend for the internetMyShop Laravel API.',
+          content: 'Online store for travel, outdoor and active lifestyle gear.',
         },
       ],
     },

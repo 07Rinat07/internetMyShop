@@ -341,13 +341,13 @@ final class MoonShineLayout extends AppLayout
     protected function menu(): array
     {
         return [
-            MenuItem::make(CategoryResource::class, 'Категории'),
-            MenuItem::make(BrandResource::class, 'Бренды'),
-            MenuItem::make(ProductResource::class, 'Товары'),
-            MenuItem::make(OrderResource::class, 'Заказы'),
-            MenuItem::make(UserResource::class, 'Пользователи'),
-            MenuItem::make(SiteContentResource::class, 'Контент витрины'),
-            MenuItem::make(PageResource::class, 'Страницы'),
+            MenuItem::make(CategoryResource::class, __('admin.menu.categories')),
+            MenuItem::make(BrandResource::class, __('admin.menu.brands')),
+            MenuItem::make(ProductResource::class, __('admin.menu.products')),
+            MenuItem::make(OrderResource::class, __('admin.menu.orders')),
+            MenuItem::make(UserResource::class, __('admin.menu.users')),
+            MenuItem::make(SiteContentResource::class, __('admin.menu.site_content')),
+            MenuItem::make(PageResource::class, __('admin.menu.pages')),
         ];
     }
 
@@ -357,6 +357,7 @@ final class MoonShineLayout extends AppLayout
             Div::make([
                 ActionButton::make(__('site.navigation.back'), $this->previousAdminUrl())->secondary(),
                 ActionButton::make(__('site.navigation.to_site'), route('index'))->info(),
+                ...$this->localeButtons(),
                 ActionButton::make(__('site.account.logout'), 'javascript:void(0);')
                     ->error()
                     ->customAttributes([
@@ -394,5 +395,24 @@ final class MoonShineLayout extends AppLayout
         }
 
         return route('moonshine.index');
+    }
+
+    private function localeButtons(): array
+    {
+        $currentLocale = app()->getLocale();
+
+        return array_map(
+            static function (string $locale) use ($currentLocale): ActionButton {
+                $button = ActionButton::make(
+                    strtoupper($locale),
+                    route('locale.switch', ['locale' => $locale])
+                );
+
+                return $currentLocale === $locale
+                    ? $button->primary()
+                    : $button->secondary();
+            },
+            config('app.supported_locales', ['ru'])
+        );
     }
 }

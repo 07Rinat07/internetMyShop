@@ -2,23 +2,20 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\Orders\CreateOrderFromBasket;
+use App\Actions\Orders\CheckoutBasket;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CheckoutOrderRequest;
 use App\Http\Resources\Api\V1\BasketResource;
 use App\Http\Resources\Api\V1\OrderDetailResource;
+use App\Http\Resources\Api\V1\PaymentResource;
 use App\Models\Basket;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Throwable;
 
 class BasketController extends Controller
 {
-    private $createOrderFromBasket;
-
-    public function __construct(CreateOrderFromBasket $createOrderFromBasket)
-    {
-        $this->createOrderFromBasket = $createOrderFromBasket;
-    }
+    public function __construct(private readonly CheckoutBasket $checkoutBasket) {}
 
     public function show()
     {
@@ -78,14 +75,28 @@ class BasketController extends Controller
             ], 422);
         }
 
-        $order = $this->createOrderFromBasket->execute(
-            $basket,
-            $request->validated(),
-            optional(auth('sanctum')->user())->id ?: auth()->id()
-        );
+        try {
+            $result = $this->checkoutBasket->execute(
+                $basket,
+                $request->validated(),
+                optional(auth('sanctum')->user())->id ?: auth()->id()
+            );
+        } catch (Throwable $exception) {
+            return response()->json([
+                'message' => 'Failed to create checkout session.',
+                'errors' => [
+                    'checkout' => [$exception->getMessage()],
+                ],
+            ], 502);
+        }
 
         return response()->json([
-            'data' => (new OrderDetailResource($order->load(['items.product'])))->resolve(),
+            'data' => [
+                'order' => (new OrderDetailResource($result->order))->resolve(),
+                'payment' => $result->payment
+                    ? (new PaymentResource($result->payment))->resolve()
+                    : null,
+            ],
         ], 201);
     }
 

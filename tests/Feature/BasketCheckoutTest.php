@@ -53,8 +53,53 @@ class BasketCheckoutTest extends TestCase {
         $this->assertEquals(2400, $order->amount);
         $this->assertEquals(0, $order->status);
         $this->assertNull($order->user_id);
+        $this->assertSame('manager_confirmation', $order->payment_method);
+        $this->assertSame('KZT', $order->currency);
         $this->assertCount(1, $order->items);
         $this->assertSame(0, $basket->fresh()->products()->count());
+    }
+
+    public function test_online_card_checkout_returns_json_payment_payload_for_legacy_storefront(): void
+    {
+        config()->set('payments.default', 'fake');
+        config()->set('payments.providers.fake.currency', 'KZT');
+
+        $category = Category::factory()->create([
+            'parent_id' => 0,
+            'name' => 'Hosted category',
+            'slug' => 'hosted-category',
+        ]);
+        $brand = Brand::factory()->create([
+            'name' => 'Hosted brand',
+            'slug' => 'hosted-brand',
+        ]);
+        $product = Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'Hosted product',
+            'slug' => 'hosted-product',
+            'price' => 2100,
+        ]);
+        $basket = Basket::create();
+        $basket->products()->attach($product->id, ['quantity' => 1]);
+
+        $response = $this
+            ->withCookie('basket_id', (string) $basket->id)
+            ->post(route('basket.saveorder'), [
+                'name' => 'Card Buyer',
+                'email' => 'card@example.com',
+                'phone' => '+77777777778',
+                'address' => 'Hosted street',
+                'comment' => 'Use card',
+                'payment_method' => 'online_card',
+            ], [
+                'Accept' => 'application/json',
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.order.payment_method.code', 'online_card')
+            ->assertJsonPath('data.payment.provider.code', 'fake')
+            ->assertJsonPath('data.payment.checkout_flow', 'hosted_fields');
     }
 
     public function test_plain_basket_cookie_cannot_open_existing_basket() {

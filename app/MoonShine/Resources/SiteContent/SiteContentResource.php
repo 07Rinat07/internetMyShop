@@ -29,7 +29,7 @@ class SiteContentResource extends ModelResource
 {
     protected string $model = SiteContent::class;
 
-    protected string $title = 'Контент витрины';
+    protected string $title = '';
 
     protected string $column = 'label';
 
@@ -41,6 +41,7 @@ class SiteContentResource extends ModelResource
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.site_content.title');
         $this->alias('site-content');
     }
 
@@ -60,12 +61,12 @@ class SiteContentResource extends ModelResource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Локаль', 'locale')->sortable(),
-            Text::make('Секция', formatted: static fn (SiteContent $content) => $content->admin_section_label)->sortable('section'),
-            Text::make('Название', formatted: static fn (SiteContent $content) => $content->display_label)->sortable('label'),
-            Text::make('Ключ', 'key')->sortable(),
+            Text::make(__('admin.fields.locale'), 'locale')->sortable(),
+            Text::make(__('admin.fields.section'), formatted: static fn (SiteContent $content) => $content->admin_section_label)->sortable('section'),
+            Text::make(__('admin.fields.label'), formatted: static fn (SiteContent $content) => $content->display_label)->sortable('label'),
+            Text::make(__('admin.fields.key'), 'key')->sortable(),
             Text::make(
-                'Значение',
+                __('admin.fields.value'),
                 formatted: static fn (SiteContent $content) => mb_strimwidth(
                     preg_replace('/\s+/u', ' ', trim($content->value)) ?? '',
                     0,
@@ -82,31 +83,31 @@ class SiteContentResource extends ModelResource
             Box::make([
                 ID::make(),
                 Flex::make([
-                    Select::make('Локаль', 'locale')
+                    Select::make(__('admin.fields.locale'), 'locale')
                         ->options($this->localeOptions())
                         ->default((string) config('app.locale', 'ru'))
                         ->required(),
-                    Text::make('Секция', 'section')
+                    Text::make(__('admin.fields.section'), 'section')
                         ->required()
-                        ->customAttributes(['placeholder' => 'header']),
+                        ->customAttributes(['placeholder' => __('admin.resources.site_content.section_placeholder')]),
                 ]),
                 Flex::make([
-                    Text::make('Название', 'label')
+                    Text::make(__('admin.fields.label'), 'label')
                         ->required()
-                        ->customAttributes(['placeholder' => 'Header: Brand']),
-                    Text::make('Ключ', 'key')
+                        ->customAttributes(['placeholder' => __('admin.resources.site_content.label_placeholder')]),
+                    Text::make(__('admin.fields.key'), 'key')
                         ->required()
-                        ->customAttributes(['placeholder' => 'header.brand']),
+                        ->customAttributes(['placeholder' => __('admin.resources.site_content.key_placeholder')]),
                 ]),
-                Number::make('Порядок', 'sort_order')
+                Number::make(__('admin.fields.sort_order'), 'sort_order')
                     ->min(0)
                     ->step(1)
                     ->default(0),
-                Textarea::make('Значение', 'value')
+                Textarea::make(__('admin.fields.value'), 'value')
                     ->required()
                     ->customAttributes([
                         'rows' => 6,
-                        'placeholder' => 'Текст для витрины',
+                        'placeholder' => __('admin.resources.site_content.value_placeholder'),
                     ]),
             ]),
         ];
@@ -116,13 +117,13 @@ class SiteContentResource extends ModelResource
     {
         return [
             ID::make(),
-            Text::make('Локаль', 'locale'),
-            Text::make('Секция', formatted: static fn (SiteContent $content) => $content->admin_section_label),
-            Text::make('Название', formatted: static fn (SiteContent $content) => $content->display_label),
-            Text::make('Ключ', 'key'),
-            Number::make('Порядок', 'sort_order'),
-            Textarea::make('Значение', 'value'),
-            Text::make('Использование', formatted: static fn (SiteContent $content) => "__('site.{$content->key}')"),
+            Text::make(__('admin.fields.locale'), 'locale'),
+            Text::make(__('admin.fields.section'), formatted: static fn (SiteContent $content) => $content->admin_section_label),
+            Text::make(__('admin.fields.label'), formatted: static fn (SiteContent $content) => $content->display_label),
+            Text::make(__('admin.fields.key'), 'key'),
+            Number::make(__('admin.fields.sort_order'), 'sort_order'),
+            Textarea::make(__('admin.fields.value'), 'value'),
+            Text::make(__('admin.fields.usage'), formatted: static fn (SiteContent $content) => "__('site.{$content->key}')"),
         ];
     }
 
@@ -169,8 +170,8 @@ class SiteContentResource extends ModelResource
         return collect(config('app.supported_locales', ['ru']))
             ->mapWithKeys(static fn (string $locale): array => [
                 $locale => Str::upper($locale).' - '.match ($locale) {
-                    'ru' => 'Русский',
-                    'en' => 'English',
+                    'ru' => __('admin.common.russian'),
+                    'en' => __('admin.common.english'),
                     default => Str::headline($locale),
                 },
             ])

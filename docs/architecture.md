@@ -80,6 +80,7 @@ The API lives under `/api/v1` and currently covers:
 - catalog;
 - basket;
 - checkout;
+- payment initiation and webhook integration;
 - profiles;
 - orders.
 
@@ -138,8 +139,37 @@ The preferred logical split is:
 - `Basket`
 - `Accounts`
 - `Orders`
+- `Payments`
 - `Admin`
 - `Content`
+
+## Payment integration model
+
+Платёжная интеграция построена как shared backend module, а не как frontend-specific implementation.
+
+Stable backend layers:
+
+- `CheckoutBasket` and `CreateOrderFromBasket` create the local order;
+- `PaymentService` creates and resolves local payment records;
+- `PaymentManager` selects the active provider driver;
+- provider-specific code is isolated behind `PaymentProviderDriver`.
+
+This means a real provider integration should normally change:
+
+- `config/payments.php`
+- `app/Enums/PaymentProvider.php`
+- `app/Services/Payments/Providers/*`
+- provider-specific frontend branch if the checkout flow differs
+
+and should normally not require rewriting:
+
+- order creation flow;
+- basket flow;
+- order and payment API resource shapes unless the public contract really changes;
+- status page behavior.
+
+Current first-class storefront flow is `hosted_fields`.
+`redirect` providers are still valid in the backend model, but storefront UI must explicitly handle redirect continuation if such provider is introduced.
 
 Within those modules, new work should prefer:
 
@@ -158,6 +188,8 @@ Core security rules:
 - ownership must be enforced in backend code, not only in UI;
 - client-sent protected fields must never be trusted;
 - basket and checkout totals are server-derived;
+- payment success must be confirmed by a verified backend webhook, not by browser return URLs;
+- provider secrets and webhook secrets must never cross into browser-readable config;
 - admin access is backend-guarded;
 - upload handling must validate MIME, path and storage;
 - browser auth should remain `HttpOnly`/BFF-based;
@@ -206,6 +238,7 @@ This architecture document must be updated when changes affect:
 
 - frontend/backend boundaries;
 - auth or session flow;
+- payment provider or webhook flow;
 - admin model;
 - content model;
 - runtime topology;

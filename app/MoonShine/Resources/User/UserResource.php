@@ -34,7 +34,7 @@ class UserResource extends ModelResource
 {
     protected string $model = User::class;
 
-    protected string $title = 'Пользователи';
+    protected string $title = '';
 
     protected string $column = 'name';
 
@@ -44,6 +44,7 @@ class UserResource extends ModelResource
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.user.title');
         $this->alias('users');
     }
 
@@ -63,10 +64,10 @@ class UserResource extends ModelResource
     {
         return [
             ID::make()->sortable(),
-            Text::make('Имя', 'name')->sortable(),
-            Email::make('Email', 'email')->sortable(),
-            Text::make('Роль', formatted: static fn (User $user) => $user->isAdmin() ? 'Администратор' : 'Пользователь'),
-            Date::make('Зарегистрирован', 'created_at')->format('d.m.Y H:i')->sortable(),
+            Text::make(__('admin.fields.name'), 'name')->sortable(),
+            Email::make(__('admin.fields.email'), 'email')->sortable(),
+            Text::make(__('admin.fields.role'), formatted: static fn (User $user) => $user->isAdmin() ? __('admin.fields.administrator') : __('admin.fields.user')),
+            Date::make(__('admin.fields.registered_at'), 'created_at')->format('d.m.Y H:i')->sortable(),
         ];
     }
 
@@ -76,16 +77,16 @@ class UserResource extends ModelResource
             Box::make([
                 ID::make(),
                 Flex::make([
-                    Text::make('Имя', 'name')->required(),
-                    Email::make('Email', 'email')->required(),
+                    Text::make(__('admin.fields.name'), 'name')->required(),
+                    Email::make(__('admin.fields.email'), 'email')->required(),
                 ]),
-                Switcher::make('Администратор', 'admin'),
-                Date::make('Зарегистрирован', 'created_at')->format('d.m.Y H:i')->default(now()->toDateTimeString())->previewMode(),
-                Collapse::make('Смена пароля', [
-                    Password::make('Пароль', 'password')
+                Switcher::make(__('admin.fields.admin_flag'), 'admin'),
+                Date::make(__('admin.fields.registered_at'), 'created_at')->format('d.m.Y H:i')->default(now()->toDateTimeString())->previewMode(),
+                Collapse::make(__('admin.fields.change_password'), [
+                    Password::make(__('admin.fields.password'), 'password')
                         ->customAttributes(['autocomplete' => 'new-password'])
                         ->eye(),
-                    PasswordRepeat::make('Повтор пароля', 'password_confirmation')
+                    PasswordRepeat::make(__('admin.fields.password_repeat'), 'password_confirmation')
                         ->customAttributes(['autocomplete' => 'confirm-password'])
                         ->eye(),
                 ]),
@@ -97,10 +98,10 @@ class UserResource extends ModelResource
     {
         return [
             ID::make(),
-            Text::make('Имя', 'name'),
-            Email::make('Email', 'email'),
-            Text::make('Роль', formatted: static fn (User $user) => $user->isAdmin() ? 'Администратор' : 'Пользователь'),
-            Date::make('Зарегистрирован', 'created_at')->format('d.m.Y H:i'),
+            Text::make(__('admin.fields.name'), 'name'),
+            Email::make(__('admin.fields.email'), 'email'),
+            Text::make(__('admin.fields.role'), formatted: static fn (User $user) => $user->isAdmin() ? __('admin.fields.administrator') : __('admin.fields.user')),
+            Date::make(__('admin.fields.registered_at'), 'created_at')->format('d.m.Y H:i'),
         ];
     }
 

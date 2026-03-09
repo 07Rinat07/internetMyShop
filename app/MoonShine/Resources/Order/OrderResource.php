@@ -30,7 +30,7 @@ class OrderResource extends ModelResource
 {
     protected string $model = Order::class;
 
-    protected string $title = 'Заказы';
+    protected string $title = '';
 
     protected string $sortColumn = 'created_at';
 
@@ -38,10 +38,11 @@ class OrderResource extends ModelResource
 
     protected int $itemsPerPage = 15;
 
-    protected array $with = ['user'];
+    protected array $with = ['user', 'payments'];
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.order.title');
         $this->alias('orders');
     }
 
@@ -61,11 +62,13 @@ class OrderResource extends ModelResource
     {
         return [
             ID::make()->sortable(),
-            Date::make('Создан', 'created_at')->format('d.m.Y H:i')->sortable(),
-            Text::make('Покупатель', 'name'),
-            Text::make('Email', 'email'),
-            Text::make('Сумма', formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸'),
-            Text::make('Статус', formatted: static fn (Order $order) => $order->statusEnum()->label()),
+            Date::make(__('admin.fields.created_at'), 'created_at')->format('d.m.Y H:i')->sortable(),
+            Text::make(__('admin.fields.customer'), 'name'),
+            Text::make(__('admin.fields.email'), 'email'),
+            Text::make(__('admin.fields.payment'), formatted: static fn (Order $order) => $order->paymentMethodEnum()->label()),
+            Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸'),
+            Text::make(__('admin.fields.status'), formatted: static fn (Order $order) => $order->statusEnum()->label()),
+            Text::make(__('admin.fields.payment_status'), formatted: static fn (Order $order) => $order->payments->sortByDesc('created_at')->first()?->statusEnum()->label() ?? __('admin.common.none')),
         ];
     }
 
@@ -74,15 +77,17 @@ class OrderResource extends ModelResource
         return [
             Box::make([
                 ID::make(),
-                Select::make('Статус', 'status')
+                Select::make(__('admin.fields.status'), 'status')
                     ->options(OrderStatus::labels())
                     ->required(),
-                Text::make('Покупатель', 'name')->previewMode(),
-                Text::make('Email', 'email')->previewMode(),
-                Text::make('Телефон', 'phone')->previewMode(),
-                Text::make('Адрес', 'address')->previewMode(),
-                Text::make('Сумма', formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸')->previewMode(),
-                Textarea::make('Комментарий', 'comment')->previewMode(),
+                Text::make(__('admin.fields.customer'), 'name')->previewMode(),
+                Text::make(__('admin.fields.email'), 'email')->previewMode(),
+                Text::make(__('admin.fields.phone'), 'phone')->previewMode(),
+                Text::make(__('admin.fields.address'), 'address')->previewMode(),
+                Text::make(__('admin.fields.payment_method'), formatted: static fn (Order $order) => $order->paymentMethodEnum()->label())->previewMode(),
+                Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸')->previewMode(),
+                Text::make(__('admin.fields.payment_status'), formatted: static fn (Order $order) => $order->payments->sortByDesc('created_at')->first()?->statusEnum()->label() ?? __('admin.common.none'))->previewMode(),
+                Textarea::make(__('admin.fields.comment'), 'comment')->previewMode(),
             ]),
         ];
     }
@@ -91,15 +96,17 @@ class OrderResource extends ModelResource
     {
         return [
             ID::make(),
-            Date::make('Создан', 'created_at')->format('d.m.Y H:i'),
-            Text::make('Покупатель', 'name'),
-            Text::make('Email', 'email'),
-            Text::make('Телефон', 'phone'),
-            Text::make('Адрес', 'address'),
-            Text::make('Статус', formatted: static fn (Order $order) => $order->statusEnum()->label()),
-            Text::make('Сумма', formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸'),
-            Text::make('Пользователь сайта', formatted: static fn (Order $order) => $order->user?->name ?? 'Гость'),
-            Textarea::make('Комментарий', 'comment'),
+            Date::make(__('admin.fields.created_at'), 'created_at')->format('d.m.Y H:i'),
+            Text::make(__('admin.fields.customer'), 'name'),
+            Text::make(__('admin.fields.email'), 'email'),
+            Text::make(__('admin.fields.phone'), 'phone'),
+            Text::make(__('admin.fields.address'), 'address'),
+            Text::make(__('admin.fields.status'), formatted: static fn (Order $order) => $order->statusEnum()->label()),
+            Text::make(__('admin.fields.payment_method'), formatted: static fn (Order $order) => $order->paymentMethodEnum()->label()),
+            Text::make(__('admin.fields.payment_status'), formatted: static fn (Order $order) => $order->payments->sortByDesc('created_at')->first()?->statusEnum()->label() ?? __('admin.common.none')),
+            Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸'),
+            Text::make(__('admin.fields.site_user'), formatted: static fn (Order $order) => $order->user?->name ?? __('admin.common.guest')),
+            Textarea::make(__('admin.fields.comment'), 'comment'),
         ];
     }
 

@@ -14,6 +14,7 @@ describe('checkout utils', () => {
       phone: '',
       address: '',
       comment: '',
+      payment_method: 'online_card',
     })
   })
 
@@ -24,6 +25,7 @@ describe('checkout utils', () => {
       phone: '+7 111 111 1111',
       address: 'Existing address',
       comment: 'Keep this note',
+      payment_method: 'manager_confirmation',
     }
     const user: AuthUser = {
       id: 1,
@@ -40,6 +42,7 @@ describe('checkout utils', () => {
       phone: '+7 111 111 1111',
       address: 'Existing address',
       comment: 'Keep this note',
+      payment_method: 'manager_confirmation',
     })
   })
 
@@ -50,6 +53,7 @@ describe('checkout utils', () => {
       phone: '+7 222 222 2222',
       address: 'Guest street',
       comment: '',
+      payment_method: 'online_card',
     }
 
     expect(prefillCheckoutFromUser(payload, null)).toEqual(payload)
@@ -62,6 +66,7 @@ describe('checkout utils', () => {
       phone: '',
       address: '',
       comment: '',
+      payment_method: 'online_card',
     }
     const profile: Profile = {
       id: 5,
@@ -79,6 +84,7 @@ describe('checkout utils', () => {
       phone: '+7 700 000 0000',
       address: '123 Test Street, Demo City',
       comment: 'Leave at the front desk.',
+      payment_method: 'online_card',
     })
   })
 })

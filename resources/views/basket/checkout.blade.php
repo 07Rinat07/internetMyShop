@@ -20,7 +20,22 @@
     @endif
 
     <section class="surface-panel">
-        <form method="post" action="{{ route('basket.saveorder') }}" id="checkout">
+        <form method="post" action="{{ route('basket.saveorder') }}" id="checkout"
+              data-manual-label="{{ __('site.basket.pay_later') }}"
+              data-online-label="{{ __('site.basket.pay_now') }}"
+              data-checkout-created-online="{{ __('site.basket.payment_step_description') }}"
+              data-checkout-failed="{{ __('site.messages.checkout_failed') }}"
+              data-payment-sdk-missing="{{ __('site.messages.payment_sdk_missing') }}"
+              data-payment-sdk-unavailable="{{ __('site.messages.payment_sdk_unavailable') }}"
+              data-payment-sdk-load-failed="{{ __('site.messages.payment_sdk_load_failed') }}"
+              data-payment-form-not-ready="{{ __('site.messages.payment_form_not_ready') }}"
+              data-payment-provider-unsupported="{{ __('site.messages.payment_provider_unsupported') }}"
+              data-payment-not-available="{{ __('site.messages.payment_not_available') }}"
+              data-card-payment-failed="{{ __('site.messages.card_payment_failed') }}"
+              data-sandbox-charge-template="{{ __('site.basket.sandbox_conversion_notice') }}"
+              data-expiry-label="{{ __('site.basket.expiry') }}"
+              data-cvv-label="{{ __('site.basket.cvv') }}"
+              data-postal-label="{{ __('site.basket.postal_code') }}">
             @csrf
             <div class="form-group">
                 <label for="checkout-name">{{ __('site.forms.full_name') }}</label>
@@ -52,10 +67,77 @@
                           placeholder="{{ __('site.forms.comment') }}"
                           maxlength="255" rows="4">{{ old('comment') ?? $profile->comment ?? '' }}</textarea>
             </div>
+            <div class="form-group">
+                <label>{{ __('site.basket.payment_method') }}</label>
+                <p class="form-hint">{{ __('site.basket.payment_method_hint') }}</p>
+                <div class="checkout-payment-methods">
+                    <label class="checkout-payment-option">
+                        <input type="radio" name="payment_method" value="online_card"
+                               @checked(old('payment_method', 'online_card') === 'online_card')>
+                        <span>
+                            <strong>{{ __('site.basket.online_card_title') }}</strong>
+                            <small>{{ __('site.basket.online_card_description') }}</small>
+                        </span>
+                    </label>
+                    <label class="checkout-payment-option">
+                        <input type="radio" name="payment_method" value="manager_confirmation"
+                               @checked(old('payment_method') === 'manager_confirmation')>
+                        <span>
+                            <strong>{{ __('site.basket.manager_confirmation_title') }}</strong>
+                            <small>{{ __('site.basket.manager_confirmation_description') }}</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div id="checkout-feedback" class="alert alert-success site-alert" hidden></div>
+            <div id="checkout-payment-error" class="alert alert-danger site-alert" hidden></div>
             <div class="action-row">
                 <a href="{{ route('basket.index') }}" class="btn btn-outline-dark">{{ __('site.basket.cart_status') }}</a>
-                <button type="submit" class="btn btn-success">{{ __('site.basket.place_order') }}</button>
+                <button type="submit" class="btn btn-success" id="checkout-submit-button">{{ __('site.basket.pay_now') }}</button>
             </div>
         </form>
+    </section>
+
+    <section class="surface-panel checkout-payment-panel" id="checkout-payment-panel" hidden>
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">{{ __('site.basket.summary') }}</span>
+            <h2>{{ __('site.basket.payment_step_title') }}</h2>
+        </div>
+        <p id="checkout-payment-description">{{ __('site.basket.payment_step_description') }}</p>
+        <div id="checkout-payment-note" class="alert alert-warning site-alert" hidden></div>
+        <div id="checkout-payment-loading" class="alert alert-secondary site-alert" hidden>{{ __('site.basket.payment_pending') }}</div>
+        <div class="checkout-hosted-fields" id="checkout-paypal-fields" hidden>
+            <div class="form-group">
+                <label>{{ __('site.forms.full_name') }}</label>
+                <div id="paypal-name-field" class="checkout-hosted-field"></div>
+            </div>
+            <div class="form-group">
+                <label>{{ __('site.basket.card_number') }}</label>
+                <div id="paypal-number-field" class="checkout-hosted-field"></div>
+            </div>
+            <div class="checkout-hosted-fields__row">
+                <div class="form-group">
+                    <label>{{ __('site.basket.expiry') }}</label>
+                    <div id="paypal-expiry-field" class="checkout-hosted-field"></div>
+                </div>
+                <div class="form-group">
+                    <label>{{ __('site.basket.cvv') }}</label>
+                    <div id="paypal-cvv-field" class="checkout-hosted-field"></div>
+                </div>
+            </div>
+        </div>
+        <div id="checkout-fake-fields" class="checkout-fake-card" hidden>
+            <strong>{{ __('site.basket.sandbox_card') }}</strong>
+            <div class="checkout-fake-card__meta">
+                <span id="checkout-fake-number"></span>
+                <span id="checkout-fake-expiry"></span>
+                <span id="checkout-fake-cvv"></span>
+                <span id="checkout-fake-postal"></span>
+            </div>
+        </div>
+        <div class="action-row">
+            <a href="#" class="btn btn-outline-dark" id="checkout-payment-status-link">{{ __('site.basket.open_payment_status') }}</a>
+            <button type="button" class="btn btn-success" id="checkout-card-submit">{{ __('site.basket.pay_now_button') }}</button>
+        </div>
     </section>
 @endsection

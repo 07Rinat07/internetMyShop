@@ -23,10 +23,12 @@ test('user can login, add product to basket and checkout', async ({ page }) => {
 
   await page.getByTestId('saved-profile-use').first().click()
   await page.getByTestId('checkout-submit').click()
+  await page.getByTestId('checkout-card-submit').click()
 
-  await expect(page.getByTestId('checkout-success')).toContainText('Order created')
+  await expect(page).toHaveURL(/\/payments\//)
+  await expect(page.getByTestId('payment-status-card')).toContainText('Payment received successfully')
 
-  await page.getByRole('link', { name: 'View orders' }).click()
+  await page.getByRole('link', { name: 'My orders' }).click()
   await expect(page).toHaveURL(/\/orders$/)
   await expect(page.getByTestId('order-list-item')).toHaveCount(1)
 

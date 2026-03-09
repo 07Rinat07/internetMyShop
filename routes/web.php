@@ -5,6 +5,8 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentProviderReturnController;
+use App\Http\Controllers\PaymentStatusController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SwaggerController;
 use App\Http\Controllers\UserController;
@@ -23,7 +25,17 @@ Route::get('/locale/{locale}', function (Request $request, string $locale) {
 
     $request->session()->put('locale', $locale);
 
-    return redirect()->back();
+    return redirect()->back()->cookie(cookie(
+        'locale',
+        $locale,
+        60 * 24 * 365,
+        '/',
+        config('session.domain'),
+        $request->isSecure(),
+        false,
+        false,
+        'lax',
+    ));
 })->name('locale.switch');
 
 /*
@@ -76,6 +88,13 @@ Route::group([
     Route::post('remove/{id}', [BasketController::class, 'remove'])->where('id', '[0-9]+')->name('remove');
     Route::post('clear', [BasketController::class, 'clear'])->name('clear');
 });
+
+Route::prefix('payments/providers/{provider}')->name('payments.providers.')->group(function () {
+    Route::get('{payment}/return', [PaymentProviderReturnController::class, 'handleReturn'])->name('return');
+    Route::get('{payment}/cancel', [PaymentProviderReturnController::class, 'handleCancel'])->name('cancel');
+});
+
+Route::get('payments/{payment}', [PaymentStatusController::class, 'show'])->name('payments.status');
 
 /*
  * Регистрация, вход в ЛК, восстановление пароля

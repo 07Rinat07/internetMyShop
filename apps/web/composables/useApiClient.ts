@@ -1,4 +1,5 @@
 import type { AuthUser } from '~/types/api'
+import { normalizeLocale } from '~/utils/locale'
 
 type ApiErrorShape = {
   data?: {
@@ -18,6 +19,7 @@ export function useApiClient() {
   const config = useRuntimeConfig()
   const authUser = useState<AuthUser | null>('auth-user', () => null)
   const authResolved = useState<boolean>('auth-resolved', () => false)
+  const localeState = useState('locale', () => normalizeLocale(useCookie<string>('locale').value))
   const apiBase = config.public.apiBase
 
   return async function apiClient<T>(path: string, options: ApiClientOptions = {}) {
@@ -29,6 +31,8 @@ export function useApiClient() {
     if (requestCookies && !headers.has('cookie')) {
       headers.set('cookie', requestCookies)
     }
+
+    headers.set('X-Locale', normalizeLocale(String(localeState.value || '')))
 
     try {
       return await $fetch<T>(path, {

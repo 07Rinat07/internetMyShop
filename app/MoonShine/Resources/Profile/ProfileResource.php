@@ -20,7 +20,12 @@ class ProfileResource extends ModelResource
 {
     protected string $model = Profile::class;
 
-    protected string $title = 'Profiles';
+    protected string $title = '';
+
+    protected function onBoot(): void
+    {
+        $this->title = __('admin.resources.profile.title');
+    }
     
     /**
      * @return list<class-string<PageContract>>

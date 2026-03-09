@@ -3,6 +3,7 @@
 namespace App\Actions\Orders;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Models\Basket;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,9 @@ class CreateOrderFromBasket
         return DB::transaction(function () use ($basket, $payload, $userId) {
             $order = new Order($payload);
             $order->amount = $basket->getAmount();
+            $order->currency = (string) ($payload['currency'] ?? config('payments.store_currency', 'KZT'));
             $order->status = OrderStatus::New->value;
+            $order->payment_method = (string) ($payload['payment_method'] ?? PaymentMethod::ManagerConfirmation->value);
             $order->user_id = $userId;
             $order->save();
 
@@ -27,8 +30,6 @@ class CreateOrderFromBasket
                     'cost' => $product->price * $product->pivot->quantity,
                 ]);
             }
-
-            $basket->clear();
 
             return $order;
         });

@@ -5,7 +5,11 @@
         <div class="page-hero__content">
             <span class="page-hero__eyebrow">{{ __('site.basket.summary') }}</span>
             <h1 class="page-hero__title">{{ __('site.basket.order_placed') }}</h1>
-            <p class="page-hero__description">{{ __('site.basket.success_message') }}</p>
+            <p class="page-hero__description">
+                {{ $order->paymentMethodEnum()->value === 'manager_confirmation'
+                    ? __('site.basket.manual_success_message')
+                    : __('site.basket.payment_success_message') }}
+            </p>
         </div>
     </section>
 
@@ -27,14 +31,14 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $item->name }}</td>
-                        <td>@price($item->price) {{ __('site.product.currency') }}</td>
+                        <td>@price($item->price) {{ $order->currency }}</td>
                         <td>{{ $item->quantity }}</td>
-                        <td>@price($item->cost) {{ __('site.product.currency') }}</td>
+                        <td>@price($item->cost) {{ $order->currency }}</td>
                     </tr>
                 @endforeach
                 <tr>
                     <th colspan="4" class="text-right">{{ __('site.table.total') }}</th>
-                    <th>@price($order->amount) {{ __('site.product.currency') }}</th>
+                    <th>@price($order->amount) {{ $order->currency }}</th>
                 </tr>
             </table>
         </div>

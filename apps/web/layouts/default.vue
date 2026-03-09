@@ -4,5 +4,6 @@
     <main class="page-shell">
       <slot />
     </main>
+    <SiteFooter />
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const basket = useBasket()
+const { t } = useLocale()
 
 const feedback = ref('')
 const errorMessage = ref('')
@@ -11,7 +12,7 @@ onMounted(async () => {
   try {
     await basket.load(true)
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Failed to load basket.')
+    errorMessage.value = getApiErrorMessage(error, t('basket_page.load_failed'))
   } finally {
     ready.value = true
   }
@@ -24,9 +25,9 @@ async function updateQuantity(productId: number, quantity: number) {
 
   try {
     await basket.updateItem(productId, quantity)
-    feedback.value = 'Basket updated.'
+    feedback.value = t('basket_page.updated')
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Failed to update basket item.')
+    errorMessage.value = getApiErrorMessage(error, t('basket_page.update_failed'))
   } finally {
     activeProductId.value = null
   }
@@ -39,9 +40,9 @@ async function removeItem(productId: number) {
 
   try {
     await basket.removeItem(productId)
-    feedback.value = 'Item removed.'
+    feedback.value = t('basket_page.removed')
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Failed to remove basket item.')
+    errorMessage.value = getApiErrorMessage(error, t('basket_page.remove_failed'))
   } finally {
     activeProductId.value = null
   }
@@ -54,9 +55,9 @@ async function clearBasket() {
 
   try {
     await basket.clear()
-    feedback.value = 'Basket cleared.'
+    feedback.value = t('basket_page.cleared')
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Failed to clear basket.')
+    errorMessage.value = getApiErrorMessage(error, t('basket_page.clear_failed'))
   } finally {
     clearing.value = false
   }
@@ -65,20 +66,19 @@ async function clearBasket() {
 
 <template>
   <section class="hero">
-    <span class="hero__eyebrow">Basket</span>
-    <h1>Cookie-based basket is now managed from the Nuxt frontend.</h1>
+    <span class="hero__eyebrow">{{ t('basket_page.hero_eyebrow') }}</span>
+    <h1>{{ t('basket_page.hero_title') }}</h1>
     <p>
-      The shared basket composable talks to <span class="mono">/api/v1/basket*</span> and keeps
-      the same server-side basket contract the legacy storefront used.
+      {{ t('basket_page.hero_description') }}
     </p>
 
     <div class="metric-row">
       <div class="metric">
-        <span class="muted">Positions</span>
+        <span class="muted">{{ t('common.positions') }}</span>
         <strong>{{ basket.positions.value }}</strong>
       </div>
       <div class="metric">
-        <span class="muted">Amount</span>
+        <span class="muted">{{ t('common.amount') }}</span>
         <strong>{{ basket.amount.value }}</strong>
       </div>
     </div>
@@ -93,17 +93,17 @@ async function clearBasket() {
     </div>
 
     <div v-if="!ready" class="card">
-      Loading basket...
+      {{ t('basket_page.loading') }}
     </div>
     <template v-else>
       <div class="section__header">
         <div>
-          <span class="eyebrow">Current basket</span>
-          <h2>{{ basket.positions.value }} active positions</h2>
+          <span class="eyebrow">{{ t('basket_page.current_basket') }}</span>
+          <h2>{{ t('basket_page.active_positions', { count: basket.positions.value }) }}</h2>
         </div>
         <div class="actions">
           <NuxtLink class="button button--ghost" to="/catalog">
-            Continue shopping
+            {{ t('common.continue_shopping') }}
           </NuxtLink>
             <button
               class="button button--danger"
@@ -111,13 +111,13 @@ async function clearBasket() {
               :disabled="basket.isEmpty.value || clearing"
               @click="clearBasket"
           >
-            {{ clearing ? 'Clearing...' : 'Clear basket' }}
+            {{ clearing ? t('common.clearing') : t('basket_page.clear_button') }}
           </button>
         </div>
       </div>
 
       <div v-if="basket.isEmpty.value" class="empty-state">
-        <p>Your basket is empty. Browse a category and add products first.</p>
+        <p>{{ t('basket_page.empty') }}</p>
       </div>
       <div v-else class="split">
         <div class="list">
@@ -130,7 +130,6 @@ async function clearBasket() {
             <div class="list-item__header">
               <div>
                 <strong>{{ item.name }}</strong>
-                <p class="muted mono">{{ item.slug }}</p>
               </div>
               <button
                 class="button button--danger"
@@ -138,13 +137,13 @@ async function clearBasket() {
                 :disabled="activeProductId === item.product_id"
                 @click="removeItem(item.product_id)"
               >
-                {{ activeProductId === item.product_id ? 'Removing...' : 'Remove' }}
+                {{ activeProductId === item.product_id ? t('common.loading') : t('common.remove') }}
               </button>
             </div>
 
             <div class="pill-row">
-              <span class="pill">Price: {{ item.price }}</span>
-              <span class="pill">Cost: {{ item.cost }}</span>
+              <span class="pill">{{ t('common.price') }}: {{ item.price }}</span>
+              <span class="pill">{{ t('common.cost') }}: {{ item.cost }}</span>
               <span v-if="item.brand" class="pill">{{ item.brand.name }}</span>
             </div>
 
@@ -157,7 +156,7 @@ async function clearBasket() {
               >
                 -
               </button>
-              <span class="pill">Qty: {{ item.quantity }}</span>
+              <span class="pill">{{ t('common.quantity') }}: {{ item.quantity }}</span>
               <button
                 class="button button--ghost"
                 type="button"
@@ -172,23 +171,23 @@ async function clearBasket() {
 
         <aside class="card stack">
           <div>
-            <span class="eyebrow">Summary</span>
-            <h2>Checkout-ready basket</h2>
+            <span class="eyebrow">{{ t('common.summary') }}</span>
+            <h2>{{ t('basket_page.summary_title') }}</h2>
           </div>
 
           <div class="metric-row">
             <div class="metric">
-              <span class="muted">Positions</span>
+              <span class="muted">{{ t('common.positions') }}</span>
               <strong>{{ basket.positions.value }}</strong>
             </div>
             <div class="metric">
-              <span class="muted">Amount</span>
+              <span class="muted">{{ t('common.amount') }}</span>
               <strong>{{ basket.amount.value }}</strong>
             </div>
           </div>
 
           <NuxtLink class="button button--accent" data-testid="basket-checkout-link" to="/checkout">
-            Go to checkout
+            {{ t('basket_page.go_to_checkout') }}
           </NuxtLink>
         </aside>
       </div>

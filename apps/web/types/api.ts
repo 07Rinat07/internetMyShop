@@ -95,6 +95,21 @@ export type CatalogIndexPayload = {
   brands: Brand[]
 }
 
+export type HomeEditorial = {
+  eyebrow: string
+  title: string
+  description: string
+  cta: string
+  category: CategoryTree
+}
+
+export type HomePayload = {
+  new: ProductListItem[]
+  hit: ProductListItem[]
+  sale: ProductListItem[]
+  editorials: HomeEditorial[]
+}
+
 export type CategoryProductsPayload = {
   category: CategoryTree
   products: ProductListItem[]
@@ -122,10 +137,29 @@ export type OrderStatus = {
   label: string | null
 }
 
+export type PaymentStatus = {
+  code: string
+  label: string | null
+}
+
+export type PaymentProvider = {
+  code: string
+  label: string | null
+}
+
+export type PaymentMethodCode = 'online_card' | 'manager_confirmation'
+
+export type PaymentMethod = {
+  code: PaymentMethodCode
+  label: string | null
+}
+
 export type OrderSummary = {
   id: number
   amount: number
+  currency: string
   status: OrderStatus
+  payment_method: PaymentMethod
   items_count: number
   created_at: string | null
   updated_at: string | null
@@ -151,6 +185,29 @@ export type OrderDetail = OrderSummary & {
   address: string
   comment: string | null
   items: OrderItem[]
+}
+
+export type PaymentDetail = {
+  id: string
+  amount: number
+  currency: string
+  store_amount: number
+  store_currency: string
+  conversion_rate: number
+  checkout_flow: string
+  status: PaymentStatus
+  provider: PaymentProvider
+  redirect_url: string | null
+  failure_reason: string | null
+  paid_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  order?: OrderSummary
+}
+
+export type CheckoutResponse = {
+  order: OrderDetail
+  payment: PaymentDetail | null
 }
 
 export type BasketItem = {
@@ -183,6 +240,31 @@ export type CheckoutPayload = {
   phone: string
   address: string
   comment: string
+  payment_method: PaymentMethodCode
+}
+
+export type PaymentCheckoutConfig = {
+  payment_id: string
+  flow: string
+  status_url: string
+  provider_payment_id: string | null
+  capture_url?: string
+  sdk?: {
+    namespace: string
+    client_id: string
+    client_token: string
+    currency: string
+    intent: string
+    components: string[]
+    merchant_id: string
+    script_url: string
+  }
+  sandbox_card?: {
+    number: string
+    expiry: string
+    cvv: string
+    postal_code: string
+  }
 }
 
 export type ProductDetail = ProductListItem & {

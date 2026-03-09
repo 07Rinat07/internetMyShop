@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Http\Resources\Api\V1\Concerns\ResolvesCatalogImageUrl;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class ProductDetailResource extends JsonResource
 {
+    use ResolvesCatalogImageUrl;
+
     public function toArray($request)
     {
         return [
@@ -17,7 +20,7 @@ class ProductDetailResource extends JsonResource
             'slug' => $this->slug,
             'content' => $this->content,
             'price' => $this->price,
-            'image' => $this->image,
+            'image' => $this->catalogImageUrl($this->image, 'product', 'image'),
             'flags' => [
                 'new' => (bool) $this->new,
                 'hit' => (bool) $this->hit,

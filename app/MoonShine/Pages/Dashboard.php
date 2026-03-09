@@ -38,7 +38,7 @@ class Dashboard extends Page
 
     public function getTitle(): string
     {
-        return $this->title ?: 'Панель управления';
+        return $this->title ?: __('admin.dashboard.title');
     }
 
     /**
@@ -48,37 +48,37 @@ class Dashboard extends Page
     {
         return [
             Box::make([
-                FlexibleRender::make('<span class="ims-dashboard-hero__eyebrow">Premium Expedition Admin</span>'),
-                Heading::make('Управление каталогом, заказами и контентом магазина', 2),
+                FlexibleRender::make(sprintf('<span class="ims-dashboard-hero__eyebrow">%s</span>', e(__('admin.dashboard.eyebrow')))),
+                Heading::make(__('admin.dashboard.heading'), 2),
                 FlexibleRender::make(
-                    '<p class="ims-dashboard-hero__text">Панель собрана как control room для витрины: работайте с каталогом, отслеживайте заказы, управляйте пользователями и быстро возвращайтесь на storefront без лишних переходов.</p>'
+                    sprintf('<p class="ims-dashboard-hero__text">%s</p>', e(__('admin.dashboard.description')))
                 ),
                 Div::make([
                     ActionButton::make(
-                        'Товары',
+                        __('admin.dashboard.actions.products'),
                         app(ProductResource::class)->getIndexPageUrl()
                     )->primary(),
                     ActionButton::make(
-                        'Заказы',
+                        __('admin.dashboard.actions.orders'),
                         app(OrderResource::class)->getIndexPageUrl()
                     )->secondary(),
                     ActionButton::make(
-                        'Пользователи',
+                        __('admin.dashboard.actions.users'),
                         app(UserResource::class)->getIndexPageUrl()
                     )->secondary(),
                     ActionButton::make(
-                        'Контент витрины',
+                        __('admin.dashboard.actions.site_content'),
                         app(SiteContentResource::class)->getIndexPageUrl()
                     )->secondary(),
-                    ActionButton::make('На сайт', route('index'))->info(),
+                    ActionButton::make(__('admin.dashboard.actions.to_site'), route('index'))->info(),
                 ])->class('ims-dashboard-actions'),
             ])->class('ims-dashboard-hero'),
             Grid::make([
-                $this->statCard('Товары', Product::query()->count(), 'Витрина, карточки и товарные коллекции'),
-                $this->statCard('Категории', Category::query()->count(), 'Навигационные разделы каталога'),
-                $this->statCard('Бренды', Brand::query()->count(), 'Марки и брендовые подборки'),
-                $this->statCard('Заказы', Order::query()->count(), 'Текущая обработка заказов'),
-                $this->statCard('Пользователи', User::query()->count(), 'Аккаунты и доступ в магазин'),
+                $this->statCard(__('admin.dashboard.stats.products_label'), Product::query()->count(), __('admin.dashboard.stats.products_note')),
+                $this->statCard(__('admin.dashboard.stats.categories_label'), Category::query()->count(), __('admin.dashboard.stats.categories_note')),
+                $this->statCard(__('admin.dashboard.stats.brands_label'), Brand::query()->count(), __('admin.dashboard.stats.brands_note')),
+                $this->statCard(__('admin.dashboard.stats.orders_label'), Order::query()->count(), __('admin.dashboard.stats.orders_note')),
+                $this->statCard(__('admin.dashboard.stats.users_label'), User::query()->count(), __('admin.dashboard.stats.users_note')),
             ])->class('ims-stat-grid'),
         ];
     }

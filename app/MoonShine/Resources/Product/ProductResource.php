@@ -35,7 +35,7 @@ class ProductResource extends CatalogModelResource
 {
     protected string $model = Product::class;
 
-    protected string $title = 'Товары';
+    protected string $title = '';
 
     protected string $column = 'name';
 
@@ -49,6 +49,7 @@ class ProductResource extends CatalogModelResource
 
     protected function onBoot(): void
     {
+        $this->title = __('admin.resources.product.title');
         $this->alias('products');
     }
 
@@ -68,17 +69,17 @@ class ProductResource extends CatalogModelResource
     {
         return [
             ID::make()->sortable(),
-            $this->previewField('Фото')->columnSelection(false),
-            Text::make('Название', 'name')->sortable(),
-            Text::make('Слаг', 'slug'),
-            Text::make('Категория', formatted: static fn (Product $product) => $product->category?->name ?? 'Не выбрана'),
-            Text::make('Бренд', formatted: static fn (Product $product) => $product->brand?->name ?? 'Не выбран'),
-            Text::make('Цена', formatted: static fn (Product $product) => number_format((float) $product->price, 0, '.', ' ') . ' ₸')->sortable('price'),
-            Text::make('Флаги', formatted: static fn (Product $product) => implode(', ', array_filter([
-                $product->new ? 'New' : null,
-                $product->hit ? 'Hit' : null,
-                $product->sale ? 'Sale' : null,
-            ])) ?: 'Нет'),
+            $this->previewField(__('admin.fields.photo'))->columnSelection(false),
+            Text::make(__('admin.fields.name'), 'name')->sortable(),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.category'), formatted: static fn (Product $product) => $product->category?->name ?? __('admin.common.not_selected')),
+            Text::make(__('admin.fields.brand'), formatted: static fn (Product $product) => $product->brand?->name ?? __('admin.common.not_selected')),
+            Text::make(__('admin.fields.price'), formatted: static fn (Product $product) => number_format((float) $product->price, 0, '.', ' ') . ' ₸')->sortable('price'),
+            Text::make(__('admin.fields.flags'), formatted: static fn (Product $product) => implode(', ', array_filter([
+                $product->new ? __('admin.fields.new') : null,
+                $product->hit ? __('admin.fields.hit') : null,
+                $product->sale ? __('admin.fields.sale') : null,
+            ])) ?: __('admin.common.none')),
         ];
     }
 
@@ -88,30 +89,30 @@ class ProductResource extends CatalogModelResource
             Box::make([
                 ID::make(),
                 Flex::make([
-                    Text::make('Название', 'name')->required(),
-                    Slug::make('Слаг', 'slug')->from('name')->live(),
+                    Text::make(__('admin.fields.name'), 'name')->required(),
+                    Slug::make(__('admin.fields.slug'), 'slug')->from('name')->live(),
                 ]),
                 Flex::make([
                     BelongsTo::make(
-                        'Категория',
+                        __('admin.fields.category'),
                         'category',
                         formatted: static fn (Category $category) => $category->name,
                         resource: CategoryResource::class,
                     )->valuesQuery(static fn (Builder $query) => $query->select(['id', 'name']))->required(),
                     BelongsTo::make(
-                        'Бренд',
+                        __('admin.fields.brand'),
                         'brand',
                         formatted: static fn (Brand $brand) => $brand->name,
                         resource: BrandResource::class,
                     )->valuesQuery(static fn (Builder $query) => $query->select(['id', 'name']))->required(),
                 ]),
-                Textarea::make('Описание', 'content')->nullable(),
+                Textarea::make(__('admin.fields.description'), 'content')->nullable(),
                 $this->uploadField(),
-                Number::make('Цена', 'price')->min(1)->step(1)->required(),
+                Number::make(__('admin.fields.price'), 'price')->min(1)->step(1)->required(),
                 Flex::make([
-                    Switcher::make('Новинка', 'new'),
-                    Switcher::make('Хит', 'hit'),
-                    Switcher::make('Распродажа', 'sale'),
+                    Switcher::make(__('admin.fields.new'), 'new'),
+                    Switcher::make(__('admin.fields.hit'), 'hit'),
+                    Switcher::make(__('admin.fields.sale'), 'sale'),
                 ]),
             ]),
         ];
@@ -121,18 +122,18 @@ class ProductResource extends CatalogModelResource
     {
         return [
             ID::make(),
-            $this->previewField('Изображение', 'image'),
-            Text::make('Название', 'name'),
-            Text::make('Слаг', 'slug'),
-            Text::make('Категория', formatted: static fn (Product $product) => $product->category?->name ?? 'Не выбрана'),
-            Text::make('Бренд', formatted: static fn (Product $product) => $product->brand?->name ?? 'Не выбран'),
-            Text::make('Цена', formatted: static fn (Product $product) => number_format((float) $product->price, 0, '.', ' ') . ' ₸'),
-            Text::make('Флаги', formatted: static fn (Product $product) => implode(', ', array_filter([
-                $product->new ? 'New' : null,
-                $product->hit ? 'Hit' : null,
-                $product->sale ? 'Sale' : null,
-            ])) ?: 'Нет'),
-            Textarea::make('Описание', 'content'),
+            $this->previewField(__('admin.fields.image'), 'image'),
+            Text::make(__('admin.fields.name'), 'name'),
+            Text::make(__('admin.fields.slug'), 'slug'),
+            Text::make(__('admin.fields.category'), formatted: static fn (Product $product) => $product->category?->name ?? __('admin.common.not_selected')),
+            Text::make(__('admin.fields.brand'), formatted: static fn (Product $product) => $product->brand?->name ?? __('admin.common.not_selected')),
+            Text::make(__('admin.fields.price'), formatted: static fn (Product $product) => number_format((float) $product->price, 0, '.', ' ') . ' ₸'),
+            Text::make(__('admin.fields.flags'), formatted: static fn (Product $product) => implode(', ', array_filter([
+                $product->new ? __('admin.fields.new') : null,
+                $product->hit ? __('admin.fields.hit') : null,
+                $product->sale ? __('admin.fields.sale') : null,
+            ])) ?: __('admin.common.none')),
+            Textarea::make(__('admin.fields.description'), 'content'),
         ];
     }
 

@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Orders\CreateOrderFromBasket;
+use App\Actions\Orders\CheckoutBasket;
 use App\Http\Requests\CheckoutOrderRequest;
+use App\Http\Resources\Api\V1\OrderDetailResource;
+use App\Http\Resources\Api\V1\PaymentResource;
 use App\Models\Basket;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Throwable;
 
 class BasketController extends Controller {
 
     private $basket;
-    private $createOrderFromBasket;
+    private $checkoutBasket;
 
-    public function __construct(CreateOrderFromBasket $createOrderFromBasket) {
-        $this->createOrderFromBasket = $createOrderFromBasket;
+    public function __construct(CheckoutBasket $checkoutBasket) {
+        $this->checkoutBasket = $checkoutBasket;
     }
 
     private function basket() {
@@ -87,18 +90,52 @@ class BasketController extends Controller {
     public function saveOrder(CheckoutOrderRequest $request) {
         $basket = $this->basket();
         if ($basket->products->isEmpty()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => __('site.messages.empty_order'),
+                    'errors' => [
+                        'basket' => [__('site.messages.empty_order')],
+                    ],
+                ], 422);
+            }
+
             return redirect()
                 ->route('basket.index')
                 ->withErrors(__('site.messages.empty_order'));
         }
 
-        $order = $this->createOrderFromBasket->execute($basket, $request->validated(), auth()->id());
+        try {
+            $result = $this->checkoutBasket->execute($basket, $request->validated(), auth()->id());
+        } catch (Throwable $exception) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => __('site.messages.checkout_failed'),
+                    'errors' => [
+                        'checkout' => [$exception->getMessage()],
+                    ],
+                ], 502);
+            }
 
-        $basket->clear();
+            return redirect()
+                ->back()
+                ->withErrors($exception->getMessage())
+                ->withInput();
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'data' => [
+                    'order' => (new OrderDetailResource($result->order))->resolve(),
+                    'payment' => $result->payment
+                        ? (new PaymentResource($result->payment))->resolve()
+                        : null,
+                ],
+            ], 201);
+        }
 
         return redirect()
             ->route('basket.success')
-            ->with('order_id', $order->id);
+            ->with('order_id', $result->order->id);
     }
 
     /**

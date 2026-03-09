@@ -2,6 +2,7 @@
 import type { ApiEnvelope, CatalogIndexPayload } from '~/types/api'
 
 const api = useApiClient()
+const { t } = useLocale()
 
 const { data, error, pending, refresh } = await useAsyncData('catalog-index', () =>
   api<ApiEnvelope<CatalogIndexPayload>>('/catalog'),
@@ -10,31 +11,30 @@ const { data, error, pending, refresh } = await useAsyncData('catalog-index', ()
 
 <template>
   <section class="hero">
-    <span class="hero__eyebrow">Catalog</span>
-    <h1>Public catalog endpoints are ready for the separate frontend.</h1>
+    <span class="hero__eyebrow">{{ t('catalog_index.hero_eyebrow') }}</span>
+    <h1>{{ t('catalog_index.hero_title') }}</h1>
     <p>
-      This page reads the new API index and shows the current top-level categories and popular
-      brands without touching the legacy Blade views.
+      {{ t('catalog_index.hero_description') }}
     </p>
   </section>
 
   <section class="section">
     <div v-if="error" class="status status--error">
-      {{ getApiErrorMessage(error, 'Failed to load catalog index.') }}
+      {{ getApiErrorMessage(error, t('catalog_index.load_failed')) }}
     </div>
 
     <div v-else-if="pending" class="card">
-      Loading catalog data...
+      {{ t('catalog_index.loading') }}
     </div>
 
     <template v-else-if="data">
       <div class="section__header">
         <div>
-          <span class="eyebrow">Categories</span>
-          <h2>Entry points for navigation</h2>
+          <span class="eyebrow">{{ t('catalog_index.categories_eyebrow') }}</span>
+          <h2>{{ t('catalog_index.categories_title') }}</h2>
         </div>
         <button class="button button--ghost" type="button" @click="refresh()">
-          Refresh
+          {{ t('common.refresh') }}
         </button>
       </div>
 
@@ -44,24 +44,35 @@ const { data, error, pending, refresh } = await useAsyncData('catalog-index', ()
           :key="category.id"
           class="card stack"
         >
+          <div class="catalog-media catalog-media--category">
+            <img
+              v-if="category.image"
+              :src="category.image"
+              :alt="category.name"
+              class="catalog-media__image"
+              loading="lazy"
+            >
+            <div v-else class="catalog-media__placeholder" aria-hidden="true"></div>
+          </div>
+
           <div class="stack">
-            <span class="pill">Category</span>
+            <span class="pill">{{ t('catalog_index.category_pill') }}</span>
             <h3>
               <NuxtLink :to="`/catalog/category/${category.slug}`">
                 {{ category.name }}
               </NuxtLink>
             </h3>
-            <p>{{ category.content || 'No category description yet.' }}</p>
+            <p>{{ category.content || t('catalog_index.no_category_description') }}</p>
           </div>
 
           <div class="actions">
             <NuxtLink class="button button--ghost" :to="`/catalog/category/${category.slug}`">
-              Browse products
+              {{ t('catalog_index.browse_products') }}
             </NuxtLink>
           </div>
 
           <div v-if="category.children.length" class="stack">
-            <span class="eyebrow">Children</span>
+            <span class="eyebrow">{{ t('common.children') }}</span>
             <div class="pill-row">
               <NuxtLink
                 v-for="child in category.children"
@@ -78,8 +89,8 @@ const { data, error, pending, refresh } = await useAsyncData('catalog-index', ()
 
       <div class="section section__header">
         <div>
-          <span class="eyebrow">Brands</span>
-          <h2>Popular brands from the API index</h2>
+          <span class="eyebrow">{{ t('catalog_index.brands_eyebrow') }}</span>
+          <h2>{{ t('catalog_index.brands_title') }}</h2>
         </div>
       </div>
 
@@ -89,17 +100,27 @@ const { data, error, pending, refresh } = await useAsyncData('catalog-index', ()
           :key="brand.id"
           class="card card--compact stack"
         >
-          <span class="pill">Brand</span>
+          <div class="catalog-media catalog-media--brand">
+            <img
+              v-if="brand.image"
+              :src="brand.image"
+              :alt="brand.name"
+              class="catalog-media__image"
+              loading="lazy"
+            >
+            <div v-else class="catalog-media__placeholder" aria-hidden="true"></div>
+          </div>
+
+          <span class="pill">{{ t('catalog_index.brand_pill') }}</span>
           <h3>
             <NuxtLink :to="`/brands/${brand.slug}`">
               {{ brand.name }}
             </NuxtLink>
           </h3>
-          <p>{{ brand.content || 'No brand description yet.' }}</p>
-          <p class="muted mono">slug: {{ brand.slug }}</p>
+          <p>{{ brand.content || t('catalog_index.no_brand_description') }}</p>
           <div class="actions">
             <NuxtLink class="button button--ghost" :to="`/brands/${brand.slug}`">
-              Open brand
+              {{ t('catalog_index.open_brand') }}
             </NuxtLink>
           </div>
         </article>

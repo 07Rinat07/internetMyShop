@@ -33,6 +33,7 @@
 - versioned REST API под `/api/v1`;
 - Sanctum token auth для внешних клиентов;
 - guest-friendly basket и checkout;
+- payment initiation, payment status endpoint, hosted card checkout config и provider webhooks;
 - OpenAPI спецификация в `docs/openapi.yaml`;
 - Swagger UI под `/swagger` в non-production окружениях.
 
@@ -144,6 +145,24 @@ Admin
 - админка и витрина работают поверх одной доменной модели;
 - тексты витрины имеют file-based fallback и DB override через `site_contents`.
 
+### Платёжная интеграция
+
+Платёжный слой построен так, чтобы sandbox-провайдер можно было заменить на production-провайдера без переписывания checkout целиком.
+
+Ключевые backend точки:
+
+- `app/Contracts/Payments/PaymentProviderDriver.php`
+- `app/Services/Payments/PaymentManager.php`
+- `app/Services/Payments/PaymentService.php`
+- `config/payments.php`
+
+Текущий набор провайдеров:
+
+- `paypal` — sandbox hosted card fields;
+- `fake` — полностью локальный provider для tests/e2e.
+
+Подробный runbook по подключению реального провайдера, webhook verification, env, rollout и test matrix: [docs/payments.md](docs/payments.md)
+
 ## Безопасность
 
 В проекте уже зафиксированы следующие базовые гарантии:
@@ -159,6 +178,10 @@ Admin
 - OpenAPI spec проверяется тестом на соответствие зарегистрированным API routes.
 
 Подробности по архитектуре и границам модулей: [docs/architecture.md](docs/architecture.md)
+
+Интеграция платежей, hosted card fields flow, webhook flow и инструкция по замене провайдера: [docs/payments.md](docs/payments.md)
+
+Текущий dev/test провайдер по умолчанию: `PayPal Sandbox`. Он используется для hosted card fields sandbox-flow. Витрина магазина живёт в `KZT`, поэтому sandbox-списание может идти в `USD` через backend conversion rate.
 
 ## Структура репозитория
 
@@ -400,6 +423,7 @@ PLAYWRIGHT_PHP_BINARY=C:\OSPanel\modules\PHP-8.4\php.exe
 - catalog API;
 - basket API;
 - checkout safety rules;
+- payment create / checkout-config / capture / webhook flow;
 - profile and order ownership;
 - MoonShine admin access;
 - storefront content overrides;
@@ -465,6 +489,7 @@ SESSION_DOMAIN=
 - `README.md` — если изменился запуск, окружение, runtime, seed или workflow;
 - `docs/architecture.md` — если поменялись границы, потоки данных, auth или роли;
 - `docs/openapi.yaml` — если изменились API routes, payloads или auth requirements;
+- `docs/payments.md` — если изменились provider config, webhook flow, checkout contract или currency strategy;
 - `docs/hosting-deployment.md` — если изменились production prerequisites, env vars, build или deploy steps;
 - `docs/documentation-maintenance.md` — если изменился сам процесс сопровождения документации.
 
