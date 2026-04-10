@@ -164,7 +164,7 @@ Admin
 - `paypal` — sandbox hosted card fields;
 - `fake` — полностью локальный provider для tests/e2e.
 
-Подробный runbook по подключению реального провайдера, webhook verification, env, rollout и test matrix: [docs/payments.md](docs/payments.md)
+Текущий flow подключения и замены провайдера описан в этом README.
 
 ## Безопасность
 
@@ -180,9 +180,7 @@ Admin
 - для web-ответов выставляются security headers и CSP;
 - OpenAPI spec проверяется тестом на соответствие зарегистрированным API routes.
 
-Подробности по архитектуре и границам модулей: [docs/architecture.md](docs/architecture.md)
-
-Интеграция платежей, hosted card fields flow, webhook flow и инструкция по замене провайдера: [docs/payments.md](docs/payments.md)
+Подробности по архитектуре и платёжному flow собраны в разделах `Архитектура` и `Платёжная интеграция` этого README.
 
 Текущий dev/test провайдер по умолчанию: `PayPal Sandbox`. Он используется для hosted card fields sandbox-flow. Витрина магазина живёт в `KZT`, поэтому sandbox-списание может идти в `USD` через backend conversion rate.
 
@@ -207,7 +205,7 @@ apps/web/               separate Nuxt frontend
 
 database/               migrations, factories, seeders
 docker/                 Docker development runtime files
-docs/                   architecture, standards, deployment, OpenAPI
+docs/                   OpenAPI spec and project screenshots
 public/                 web root and compiled assets
 resources/              Blade templates, translations, source assets
 routes/                 web and API routes
@@ -485,12 +483,7 @@ SESSION_DOMAIN=
 ### Основные документы
 
 - [README.md](README.md) — быстрый вход, стек, запуск, тесты;
-- [docs/architecture.md](docs/architecture.md) — архитектурные границы и поток данных;
 - [docs/openapi.yaml](docs/openapi.yaml) — API контракт;
-- [docs/hosting-deployment.md](docs/hosting-deployment.md) — подробный запуск на хостинге и VPS;
-- [docs/documentation-maintenance.md](docs/documentation-maintenance.md) — какие документы обновлять после каждого изменения;
-- [docs/development-standards.md](docs/development-standards.md) — стандарты кода и документации;
-- [docs/review-checklist.md](docs/review-checklist.md) — финальный self-review checklist;
 - [CONTRIBUTING.md](CONTRIBUTING.md) — правила инженерной работы.
 
 ### Обязательное правило сопровождения
@@ -499,16 +492,11 @@ SESSION_DOMAIN=
 
 Минимум:
 
-- `README.md` — если изменился запуск, окружение, runtime, seed или workflow;
-- `docs/architecture.md` — если поменялись границы, потоки данных, auth или роли;
+- `README.md` — если изменился запуск, окружение, runtime, seed, workflow, архитектурные границы или платёжный flow;
 - `docs/openapi.yaml` — если изменились API routes, payloads или auth requirements;
-- `docs/payments.md` — если изменились provider config, webhook flow, checkout contract или currency strategy;
-- `docs/hosting-deployment.md` — если изменились production prerequisites, env vars, build или deploy steps;
-- `docs/documentation-maintenance.md` — если изменился сам процесс сопровождения документации.
+- `CONTRIBUTING.md` — если изменились инженерные правила или договорённости по процессу.
 
 ## Развёртывание на хостинге
-
-Подробная инструкция вынесена в [docs/hosting-deployment.md](docs/hosting-deployment.md).
 
 Кратко:
 
