@@ -275,6 +275,30 @@ class PaymentApiTest extends TestCase
         $this->assertSame(OrderStatus::Paid->value, $order->fresh()->status);
     }
 
+    public function test_capture_endpoint_returns_422_when_provider_rejects_capture(): void
+    {
+        [, $payment] = $this->createOrderWithPayment([
+            'provider' => 'fake',
+            'provider_payment_id' => 'fake-payment-2',
+            'currency' => 'KZT',
+            'amount' => '2500.00',
+            'store_amount' => '2500.00',
+            'store_currency' => 'KZT',
+            'conversion_rate' => '1.000000',
+            'checkout_flow' => 'hosted_fields',
+        ]);
+
+        $response = $this->postJson('/api/v1/payments/'.$payment->public_id.'/capture', [
+            'provider_payment_id' => 'wrong-token',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Failed to capture payment.')
+            ->assertJsonValidationErrors(['payment']);
+
+        $this->assertSame(PaymentStatus::Failed->value, $payment->fresh()->status);
+    }
+
     private function createOrderWithPayment(array $paymentOverrides = []): array
     {
         $order = new Order([

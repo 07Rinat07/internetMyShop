@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api\V1;
 
 use App\Http\Resources\Api\V1\Concerns\ResolvesCatalogImageUrl;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -19,7 +20,7 @@ class ProductDetailResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'content' => $this->content,
-            'price' => $this->price,
+            'price' => MoneyFormatter::toNumeric((string) $this->price),
             'image' => $this->catalogImageUrl($this->image, 'product', 'image'),
             'flags' => [
                 'new' => (bool) $this->new,

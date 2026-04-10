@@ -4,16 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\Basket;
 use App\Models\Brand;
-use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class BasketCheckoutTest extends TestCase {
+class BasketCheckoutTest extends TestCase
+{
     use RefreshDatabase;
 
-    public function test_checkout_ignores_client_side_amount_status_and_user_id() {
+    public function test_checkout_ignores_client_side_amount_status_and_user_id()
+    {
         $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Checkout category',
@@ -102,7 +104,47 @@ class BasketCheckoutTest extends TestCase {
             ->assertJsonPath('data.payment.checkout_flow', 'hosted_fields');
     }
 
-    public function test_plain_basket_cookie_cannot_open_existing_basket() {
+    public function test_checkout_preserves_decimal_cents_in_order_items(): void
+    {
+        $category = Category::factory()->create([
+            'parent_id' => 0,
+            'name' => 'Decimal category',
+            'slug' => 'decimal-category',
+        ]);
+        $brand = Brand::factory()->create([
+            'name' => 'Decimal brand',
+            'slug' => 'decimal-brand',
+        ]);
+        $product = Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'Decimal product',
+            'slug' => 'decimal-product',
+            'price' => '10.10',
+        ]);
+        $basket = Basket::create();
+        $basket->products()->attach($product->id, ['quantity' => 3]);
+
+        $response = $this
+            ->withCookie('basket_id', (string) $basket->id)
+            ->post(route('basket.saveorder'), [
+                'name' => 'Decimal Buyer',
+                'email' => 'decimal@example.com',
+                'phone' => '+77777777779',
+                'address' => 'Decimal street',
+            ]);
+
+        /** @var Order $order */
+        $order = Order::query()->with('items')->firstOrFail();
+
+        $response->assertRedirect(route('basket.success'));
+        $this->assertSame('30.30', (string) $order->amount);
+        $this->assertSame('10.10', (string) $order->items->firstOrFail()->price);
+        $this->assertSame('30.30', (string) $order->items->firstOrFail()->cost);
+    }
+
+    public function test_plain_basket_cookie_cannot_open_existing_basket()
+    {
         $category = Category::factory()->create([
             'parent_id' => 0,
             'name' => 'Isolation category',

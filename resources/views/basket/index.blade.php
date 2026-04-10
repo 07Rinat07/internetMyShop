@@ -59,7 +59,7 @@
                                     </form>
                                 </div>
                             </td>
-                            <td>@price($product->price * $product->pivot->quantity) {{ __('site.product.currency') }}</td>
+                            <td>@price($product->priceMoney()->multiply((int) $product->pivot->quantity)->toDecimal()) {{ __('site.product.currency') }}</td>
                             <td>
                                 <form action="{{ route('basket.remove', ['id' => $product->id]) }}"
                                       method="post">

@@ -98,4 +98,64 @@ class ProfileApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_owner_can_show_update_with_put_and_delete_profile(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('profiles-crud')->plainTextToken;
+        /** @var Profile $profile */
+        $profile = $user->profiles()->create([
+            'title' => 'Primary',
+            'name' => 'Original Name',
+            'email' => 'profile@example.com',
+            'phone' => '+70000000014',
+            'address' => 'Original address',
+            'comment' => 'Original comment',
+        ]);
+
+        $showResponse = $this
+            ->withToken($token)
+            ->getJson('/api/v1/profiles/'.$profile->id);
+
+        $showResponse->assertOk()
+            ->assertJsonPath('data.id', $profile->id)
+            ->assertJsonPath('data.email', 'profile@example.com');
+
+        $updateResponse = $this
+            ->withToken($token)
+            ->putJson('/api/v1/profiles/'.$profile->id, [
+                'title' => 'Updated title',
+                'name' => 'Updated Name',
+                'email' => 'updated-profile@example.com',
+                'phone' => '+70000000015',
+                'address' => 'Updated address',
+                'comment' => 'Updated comment',
+            ]);
+
+        $updateResponse->assertOk()
+            ->assertJsonPath('data.title', 'Updated title')
+            ->assertJsonPath('data.email', 'updated-profile@example.com');
+
+        $deleteResponse = $this
+            ->withToken($token)
+            ->deleteJson('/api/v1/profiles/'.$profile->id);
+
+        $deleteResponse->assertNoContent();
+        $this->assertDatabaseMissing('profiles', ['id' => $profile->id]);
+    }
+
+    public function test_store_validates_required_profile_fields(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('profiles-validation')->plainTextToken;
+
+        $response = $this
+            ->withToken($token)
+            ->postJson('/api/v1/profiles', [
+                'title' => '',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['title', 'name', 'email', 'phone', 'address']);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cookie;
@@ -11,31 +12,35 @@ use Illuminate\Support\Facades\DB;
  * @property int $id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
  */
-class Basket extends Model {
-
+class Basket extends Model
+{
     /**
      * Связь «многие ко многим» таблицы `baskets` с таблицей `products`
      */
-    public function products() {
+    public function products()
+    {
         return $this->belongsToMany(Product::class)->withPivot('quantity');
     }
 
     /**
      * Увеличивает кол-во товара $id в корзине на величину $count
      */
-    public function increase($id, $count = 1) {
+    public function increase($id, $count = 1)
+    {
         $this->change($id, $count);
     }
 
     /**
      * Устанавливает кол-во товара $id в корзине
      */
-    public function setQuantity($id, $quantity) {
-        $quantity = (int)$quantity;
-        $id = (int)$id;
+    public function setQuantity($id, $quantity)
+    {
+        $quantity = (int) $quantity;
+        $id = (int) $id;
 
         if ($quantity <= 0) {
             $this->remove($id);
+
             return;
         }
 
@@ -52,7 +57,8 @@ class Basket extends Model {
     /**
      * Уменьшает кол-во товара $id в корзине на величину $count
      */
-    public function decrease($id, $count = 1) {
+    public function decrease($id, $count = 1)
+    {
         $this->change($id, -1 * $count);
     }
 
@@ -61,11 +67,12 @@ class Basket extends Model {
      * если товара еще нет в корзине — добавляет этот товар; $count
      * может быть как положительным, так и отрицательным числом
      */
-    private function change($id, $count = 1) {
+    private function change($id, $count = 1)
+    {
         if ($count == 0) {
             return;
         }
-        $id = (int)$id;
+        $id = (int) $id;
 
         DB::transaction(function () use ($id, $count) {
             $pivotRow = DB::table('basket_product')
@@ -106,7 +113,8 @@ class Basket extends Model {
     /**
      * Удаляет товар с идентификатором $id из корзины покупателя
      */
-    public function remove($id) {
+    public function remove($id)
+    {
         // удаляем товар из корзины (разрушаем связь)
         $this->products()->detach($id);
         $this->unsetRelation('products');
@@ -117,7 +125,8 @@ class Basket extends Model {
     /**
      * Удаляет все товары из корзины покупателя
      */
-    public function clear() {
+    public function clear()
+    {
         // удаляем товар из корзины (разрушаем все связи)
         $this->products()->detach();
         $this->unsetRelation('products');
@@ -128,18 +137,27 @@ class Basket extends Model {
     /**
      * Возвращает стоимость всех товаров в корзине
      */
-    public function getAmount() {
-        $amount = 0.0;
+    public function getAmountMoney(): Money
+    {
+        $amount = Money::zero((string) config('payments.store_currency', 'KZT'));
+
         foreach ($this->products as $product) {
-            $amount = $amount + $product->price * $product->pivot->quantity;
+            $amount = $amount->add($product->priceMoney()->multiply((int) $product->pivot->quantity));
         }
+
         return $amount;
+    }
+
+    public function getAmount()
+    {
+        return $this->getAmountMoney()->toDecimal();
     }
 
     /**
      * Возвращает количество позиций в корзине
      */
-    public static function getCount() {
+    public static function getCount()
+    {
         $basket_id = request()->cookie('basket_id');
         if (empty($basket_id)) {
             return 0;
@@ -153,9 +171,10 @@ class Basket extends Model {
     /**
      * Возвращает объект корзины; если не найден — создает новый
      */
-    public static function getBasket() {
-        $basket_id = (int)request()->cookie('basket_id');
-        if (!empty($basket_id)) {
+    public static function getBasket()
+    {
+        $basket_id = (int) request()->cookie('basket_id');
+        if (! empty($basket_id)) {
             try {
                 $basket = Basket::findOrFail($basket_id);
             } catch (ModelNotFoundException $e) {
@@ -165,6 +184,7 @@ class Basket extends Model {
             $basket = Basket::create();
         }
         Cookie::queue('basket_id', $basket->id, 525600);
+
         return $basket;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Money\Money;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $slug
  * @property string|null $content
  * @property string|null $image
- * @property float $price
+ * @property string|int|float $price
  * @property bool $new
  * @property bool $hit
  * @property bool $sale
@@ -24,6 +25,13 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'new' => 'boolean',
+        'hit' => 'boolean',
+        'sale' => 'boolean',
+    ];
 
     protected $fillable = [
         'category_id',
@@ -66,6 +74,14 @@ class Product extends Model
     public function baskets()
     {
         return $this->belongsToMany(Basket::class)->withPivot('quantity');
+    }
+
+    public function priceMoney(?string $currency = null): Money
+    {
+        return Money::fromDecimal(
+            (string) $this->price,
+            $currency ?? (string) config('payments.store_currency', 'KZT'),
+        );
     }
 
     /**

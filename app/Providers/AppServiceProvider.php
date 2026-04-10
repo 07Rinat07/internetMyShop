@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
             return '<i class="fas fa-'.$name.'"></i>';
         });
         Blade::directive('price', function ($expression) {
-            return "<?php echo number_format((float) ($expression), 0, '.', ' '); ?>";
+            return "<?php echo \\App\\Support\\Money\\MoneyFormatter::format($expression); ?>";
         });
         Blade::if('admin', function () {
             return auth()->check() && Gate::allows('access-admin');

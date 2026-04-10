@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -14,7 +15,7 @@ class BasketResource extends JsonResource
         return [
             'id' => $this->id,
             'positions' => $this->products->count(),
-            'amount' => $this->getAmount(),
+            'amount' => MoneyFormatter::toNumeric($this->getAmount()),
             'items' => BasketItemResource::collection($this->products),
         ];
     }

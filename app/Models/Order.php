@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Support\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $phone
  * @property string $address
  * @property string|null $comment
- * @property float $amount
+ * @property string|int|float $amount
  * @property string $currency
  * @property int $status
  * @property string $payment_method
@@ -46,6 +47,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'status' => 'integer',
     ];
 
@@ -72,6 +74,11 @@ class Order extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function amountMoney(): Money
+    {
+        return Money::fromDecimal((string) $this->amount, (string) $this->currency);
     }
 
     public function statusEnum(): OrderStatus

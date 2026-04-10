@@ -14,20 +14,22 @@ class CreateOrderFromBasket
     {
         return DB::transaction(function () use ($basket, $payload, $userId) {
             $order = new Order($payload);
-            $order->amount = $basket->getAmount();
-            $order->currency = (string) ($payload['currency'] ?? config('payments.store_currency', 'KZT'));
+            $order->currency = (string) config('payments.store_currency', 'KZT');
+            $order->amount = $basket->getAmountMoney()->toDecimal();
             $order->status = OrderStatus::New->value;
             $order->payment_method = (string) ($payload['payment_method'] ?? PaymentMethod::ManagerConfirmation->value);
             $order->user_id = $userId;
             $order->save();
 
             foreach ($basket->products as $product) {
+                $price = $product->priceMoney($order->currency);
+
                 $order->items()->create([
                     'product_id' => $product->id,
                     'name' => $product->name,
-                    'price' => $product->price,
+                    'price' => $price->toDecimal(),
                     'quantity' => $product->pivot->quantity,
-                    'cost' => $product->price * $product->pivot->quantity,
+                    'cost' => $price->multiply((int) $product->pivot->quantity)->toDecimal(),
                 ]);
             }
 

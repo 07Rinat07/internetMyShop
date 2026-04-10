@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -16,7 +17,7 @@ class OrderSummaryResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'amount' => $this->amount,
+            'amount' => MoneyFormatter::toNumeric((string) $this->amount),
             'currency' => $this->currency,
             'status' => [
                 'code' => $status->value,

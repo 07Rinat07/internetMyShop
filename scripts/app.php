@@ -21,49 +21,49 @@ $commandMap = [
         ['type' => 'process', 'bin' => $npm, 'args' => ['run', 'web:install']],
     ],
     'local:prepare' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['scripts/prepare-local-environment.php']],
+        projectPhpStep($projectPhp, $isWindows, ['scripts/prepare-local-environment.php']),
     ],
     'local:setup' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['scripts/prepare-local-environment.php']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'key:generate', '--ansi', '--force']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'migrate', '--force', '--no-interaction']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'db:seed', '--force', '--no-interaction']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'storage:link', '--force']],
+        projectPhpStep($projectPhp, $isWindows, ['scripts/prepare-local-environment.php']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'key:generate', '--ansi', '--force']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'migrate', '--force', '--no-interaction']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'db:seed', '--force', '--no-interaction']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'storage:link', '--force']),
     ],
     'local:refresh' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['scripts/prepare-local-environment.php']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'migrate:fresh', '--seed', '--force', '--no-interaction']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'storage:link', '--force']],
+        projectPhpStep($projectPhp, $isWindows, ['scripts/prepare-local-environment.php']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'migrate:fresh', '--seed', '--force', '--no-interaction']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'storage:link', '--force']),
     ],
     'local:seed:content' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['scripts/prepare-local-environment.php']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'db:seed', '--class=Database\\Seeders\\StorefrontSiteContentSeeder', '--force', '--no-interaction']],
+        projectPhpStep($projectPhp, $isWindows, ['scripts/prepare-local-environment.php']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'db:seed', '--class=Database\\Seeders\\StorefrontSiteContentSeeder', '--force', '--no-interaction']),
     ],
     'local:serve' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'serve', '--host=127.0.0.1', '--port=8000']],
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'serve', '--host=127.0.0.1', '--port=8000']),
     ],
     'local:clear' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'optimize:clear']],
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'optimize:clear']),
     ],
     'backend:lint' => [
         ['type' => 'composer', 'args' => ['lint']],
     ],
     'backend:analyse' => [
-        ['type' => 'composer', 'args' => ['analyse']],
+        projectPhpStep($projectPhp, $isWindows, ['vendor/bin/phpstan', 'analyse', '--memory-limit=1G', '--no-progress']),
     ],
     'backend:test' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'test']],
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'test']),
     ],
     'backend:quality' => [
         ['type' => 'composer', 'args' => ['lint']],
-        ['type' => 'composer', 'args' => ['analyse']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'test']],
+        projectPhpStep($projectPhp, $isWindows, ['vendor/bin/phpstan', 'analyse', '--memory-limit=1G', '--no-progress']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'test']),
     ],
     'docker:prepare' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['scripts/prepare-docker-environment.php']],
+        projectPhpStep($projectPhp, $isWindows, ['scripts/prepare-docker-environment.php']),
     ],
     'docker:up' => [
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['scripts/prepare-docker-environment.php']],
+        projectPhpStep($projectPhp, $isWindows, ['scripts/prepare-docker-environment.php']),
         ['type' => 'process', 'bin' => $docker, 'args' => ['compose', 'up', '-d', '--build']],
     ],
     'docker:down' => [
@@ -113,8 +113,8 @@ $commandMap = [
     ],
     'verify:all' => [
         ['type' => 'composer', 'args' => ['lint']],
-        ['type' => 'composer', 'args' => ['analyse']],
-        ['type' => 'process', 'bin' => $projectPhp, 'args' => ['artisan', 'test']],
+        projectPhpStep($projectPhp, $isWindows, ['vendor/bin/phpstan', 'analyse', '--memory-limit=1G', '--no-progress']),
+        projectPhpStep($projectPhp, $isWindows, ['artisan', 'test']),
         ['type' => 'process', 'bin' => $npm, 'args' => ['run', 'web:quality']],
     ],
     'verify:e2e' => [
@@ -133,9 +133,9 @@ if ($command === 'doctor') {
 
     echo "Project command doctor\n";
     echo "Root: {$root}\n";
-    echo "Launcher PHP: {$launcherPhp} (" . PHP_VERSION . ")\n";
-    echo 'Project PHP: ' . $projectPhp . ' (' . (detectPhpVersion($projectPhp) ?? 'unknown') . ')' . PHP_EOL;
-    echo 'Composer: ' . ($composer ?? 'not found') . PHP_EOL;
+    echo "Launcher PHP: {$launcherPhp} (".PHP_VERSION.")\n";
+    echo 'Project PHP: '.$projectPhp.' ('.(detectPhpVersion($projectPhp) ?? 'unknown').')'.PHP_EOL;
+    echo 'Composer: '.($composer ?? 'not found').PHP_EOL;
     echo "NPM: {$npm}\n";
     echo "Docker: {$docker}\n";
     exit(0);
@@ -165,17 +165,18 @@ function runStep(array $step): int
         if ($composer === null) {
             fwrite(STDERR, "Composer executable was not found.\n");
             fwrite(STDERR, "Use COMPOSER_BIN or install Composer from https://getcomposer.org/.\n");
+
             return 1;
         }
 
         $parts = isComposerPhar($composer)
-            ? array_merge([resolveProjectPhp(PHP_BINARY, DIRECTORY_SEPARATOR === '\\'), $composer], $step['args'])
+            ? array_merge(resolveProjectPhpParts(resolveProjectPhp(PHP_BINARY, DIRECTORY_SEPARATOR === '\\'), DIRECTORY_SEPARATOR === '\\'), [$composer], $step['args'])
             : array_merge([$composer], $step['args']);
 
         return runCommand($parts);
     }
 
-    $parts = array_merge([$step['bin']], $step['args']);
+    $parts = $step['parts'] ?? array_merge([$step['bin']], $step['args']);
 
     return runCommand($parts);
 }
@@ -183,8 +184,9 @@ function runStep(array $step): int
 function runCommand(array $parts): int
 {
     $command = buildCommand($parts);
+    applyProjectTempEnvironment();
 
-    echo '> ' . $command . PHP_EOL;
+    echo '> '.$command.PHP_EOL;
     passthru($command, $exitCode);
     echo PHP_EOL;
 
@@ -210,7 +212,7 @@ function escapeWindowsArgument(string $arg): string
         return $arg;
     }
 
-    return '"' . str_replace('"', '\"', $arg) . '"';
+    return '"'.str_replace('"', '\"', $arg).'"';
 }
 
 function findComposer(): ?string
@@ -289,6 +291,66 @@ function resolveProjectPhp(string $launcherPhp, bool $isWindows): string
     return $launcherPhp;
 }
 
+function projectPhpStep(string $projectPhp, bool $isWindows, array $args): array
+{
+    return [
+        'type' => 'process',
+        'parts' => array_merge(resolveProjectPhpParts($projectPhp, $isWindows), $args),
+    ];
+}
+
+function resolveProjectPhpParts(string $projectPhp, bool $isWindows): array
+{
+    $parts = [$projectPhp];
+
+    if (! $isWindows) {
+        return $parts;
+    }
+
+    $version = detectPhpVersion($projectPhp);
+
+    if ($version === null || ! isPhpVersionSupported($version)) {
+        return $parts;
+    }
+
+    $tempDir = ensureProjectPhpTempDir();
+
+    return array_merge($parts, [
+        '-d',
+        'sys_temp_dir='.$tempDir,
+        '-d',
+        'upload_tmp_dir='.$tempDir,
+    ]);
+}
+
+function ensureProjectPhpTempDir(): string
+{
+    $tempDir = dirname(__DIR__).DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'framework'.DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.'php84';
+
+    if (! is_dir($tempDir)) {
+        mkdir($tempDir, 0777, true);
+    }
+
+    return str_replace('\\', '/', $tempDir);
+}
+
+function applyProjectTempEnvironment(): void
+{
+    if (DIRECTORY_SEPARATOR !== '\\') {
+        return;
+    }
+
+    // PhpStan and other subprocesses on Windows may still use TEMP/TMP even if PHP ini temp dirs are overridden.
+    $tempDir = ensureProjectPhpTempDir();
+
+    putenv('TMP='.$tempDir);
+    putenv('TEMP='.$tempDir);
+    putenv('TMPDIR='.$tempDir);
+    $_ENV['TMP'] = $tempDir;
+    $_ENV['TEMP'] = $tempDir;
+    $_ENV['TMPDIR'] = $tempDir;
+}
+
 function detectPhpVersion(string $phpBinary): ?string
 {
     $command = buildCommand([$phpBinary, '-r', 'echo PHP_VERSION;']);
@@ -324,7 +386,7 @@ function isExecutableCommand(string $command): bool
 
 function printHelp(): void
 {
-    echo <<<TXT
+    echo <<<'TXT'
 Universal project runner
 
 Usage:

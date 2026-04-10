@@ -139,6 +139,7 @@ Admin
 ### Ключевые архитектурные правила
 
 - backend определяет бизнес-правила, сумму заказа, ownership и роли;
+- денежные суммы и конвертация считаются через общий слой `app/Support/Money`, а не через `float`;
 - Blade storefront остаётся совместимым web-слоем;
 - Nuxt frontend не должен хранить bearer token в JavaScript-доступном состоянии;
 - браузерный frontend ходит в backend через Nuxt BFF;
@@ -154,6 +155,8 @@ Admin
 - `app/Contracts/Payments/PaymentProviderDriver.php`
 - `app/Services/Payments/PaymentManager.php`
 - `app/Services/Payments/PaymentService.php`
+- `app/Support/Money/Money.php`
+- `app/Support/Money/Currency.php`
 - `config/payments.php`
 
 Текущий набор провайдеров:
@@ -193,7 +196,7 @@ app/                    Laravel application code
   Models/               Eloquent models
   MoonShine/            admin panel resources, pages and layout
   Services/             application services
-  Support/              defaults and support classes
+  Support/              defaults, exact money math and support classes
 
 apps/web/               separate Nuxt frontend
   components/           reusable UI
@@ -245,6 +248,8 @@ Windows PowerShell:
 ```powershell
 $env:PROJECT_PHP_BIN='C:\OSPanel\modules\PHP-8.4\php.exe'
 ```
+
+На `Windows + OSPanel` launcher дополнительно подставляет проектный temp-dir для `PHP 8.4`, чтобы `artisan test`, загрузки файлов и `composer`-запуски не упирались в системный временный каталог панели.
 
 `composer app:*` и `npm run web:*` остаются допустимыми алиасами, если локальный `composer` установлен и исправно работает.
 
@@ -421,14 +426,20 @@ PLAYWRIGHT_PHP_BINARY=C:\OSPanel\modules\PHP-8.4\php.exe
 
 - auth API;
 - catalog API;
+- documented catalog filters for category and brand endpoints;
 - basket API;
+- basket clear, empty checkout and exact decimal basket totals;
 - checkout safety rules;
 - payment create / checkout-config / capture / webhook flow;
+- payment status page, provider return and provider cancel web-flow;
 - profile and order ownership;
+- profile API CRUD through `GET / POST / PUT / DELETE`;
 - MoonShine admin access;
+- MoonShine catalog image upload on Windows-friendly fixture path;
 - storefront content overrides;
+- public storefront pages and authenticated account pages;
 - Swagger route availability;
-- OpenAPI route contract;
+- OpenAPI route + HTTP method contract;
 - Nuxt unit logic;
 - Playwright сценарий `login -> basket -> checkout`.
 
@@ -452,6 +463,8 @@ php scripts/app.php verify:all
 ```
 
 Команда `doctor` покажет, какие `PHP`, `Composer`, `NPM` и `Docker` launcher нашёл на конкретной машине.
+
+На Windows это нормально, если `doctor` показывает разные значения для `Launcher PHP` и `Project PHP`: например, launcher может стартовать из `PHP 8.2`, а проектовые команды и тесты уже выполнять через найденный `PHP 8.4`.
 
 Если автоопределение не сработало, укажите:
 

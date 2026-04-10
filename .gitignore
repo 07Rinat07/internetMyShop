@@ -1,6 +1,9 @@
 /node_modules
 /public/hot
 /public/storage
+/storage/phpstan/
+/storage/framework/cache/phpstan/
+/storage/framework/tmp/
 /storage/*.key
 /vendor
 .idea/

@@ -13,6 +13,7 @@ use App\MoonShine\Resources\Product\Pages\ProductDetailPage;
 use App\MoonShine\Resources\Product\Pages\ProductFormPage;
 use App\MoonShine\Resources\Product\Pages\ProductIndexPage;
 use App\MoonShine\Resources\Support\CatalogModelResource;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use MoonShine\Contracts\Core\PageContract;
@@ -74,7 +75,7 @@ class ProductResource extends CatalogModelResource
             Text::make(__('admin.fields.slug'), 'slug'),
             Text::make(__('admin.fields.category'), formatted: static fn (Product $product) => $product->category?->name ?? __('admin.common.not_selected')),
             Text::make(__('admin.fields.brand'), formatted: static fn (Product $product) => $product->brand?->name ?? __('admin.common.not_selected')),
-            Text::make(__('admin.fields.price'), formatted: static fn (Product $product) => number_format((float) $product->price, 0, '.', ' ') . ' ₸')->sortable('price'),
+            Text::make(__('admin.fields.price'), formatted: static fn (Product $product) => MoneyFormatter::format((string) $product->price).' ₸')->sortable('price'),
             Text::make(__('admin.fields.flags'), formatted: static fn (Product $product) => implode(', ', array_filter([
                 $product->new ? __('admin.fields.new') : null,
                 $product->hit ? __('admin.fields.hit') : null,
@@ -108,7 +109,7 @@ class ProductResource extends CatalogModelResource
                 ]),
                 Textarea::make(__('admin.fields.description'), 'content')->nullable(),
                 $this->uploadField(),
-                Number::make(__('admin.fields.price'), 'price')->min(1)->step(1)->required(),
+                Number::make(__('admin.fields.price'), 'price')->min(0.01)->step(0.01)->required(),
                 Flex::make([
                     Switcher::make(__('admin.fields.new'), 'new'),
                     Switcher::make(__('admin.fields.hit'), 'hit'),
@@ -127,7 +128,7 @@ class ProductResource extends CatalogModelResource
             Text::make(__('admin.fields.slug'), 'slug'),
             Text::make(__('admin.fields.category'), formatted: static fn (Product $product) => $product->category?->name ?? __('admin.common.not_selected')),
             Text::make(__('admin.fields.brand'), formatted: static fn (Product $product) => $product->brand?->name ?? __('admin.common.not_selected')),
-            Text::make(__('admin.fields.price'), formatted: static fn (Product $product) => number_format((float) $product->price, 0, '.', ' ') . ' ₸'),
+            Text::make(__('admin.fields.price'), formatted: static fn (Product $product) => MoneyFormatter::format((string) $product->price).' ₸'),
             Text::make(__('admin.fields.flags'), formatted: static fn (Product $product) => implode(', ', array_filter([
                 $product->new ? __('admin.fields.new') : null,
                 $product->hit ? __('admin.fields.hit') : null,
@@ -157,7 +158,7 @@ class ProductResource extends CatalogModelResource
             'brand_id' => ['required', 'integer', 'exists:brands,id'],
             'content' => ['nullable', 'string'],
             'image' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,jpg,png,webp'],
-            'price' => ['required', 'numeric', 'min:1'],
+            'price' => ['required', 'numeric', 'min:0.01'],
             'new' => ['nullable', 'boolean'],
             'hit' => ['nullable', 'boolean'],
             'sale' => ['nullable', 'boolean'],

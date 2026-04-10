@@ -8,14 +8,13 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Support\Money\Money;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class PaymentService
 {
-    public function __construct(private readonly PaymentManager $manager)
-    {
-    }
+    public function __construct(private readonly PaymentManager $manager) {}
 
     public function createForOrder(Order $order, ?string $providerCode = null): Payment
     {
@@ -23,14 +22,19 @@ class PaymentService
         $storeCurrency = (string) ($order->currency ?: config('payments.store_currency', 'KZT'));
         $providerCurrency = $this->providerCurrency($providerCode, $storeCurrency);
         $conversionRate = $this->conversionRate($providerCode, $storeCurrency, $providerCurrency);
+        $storeAmount = $order->amountMoney();
+        // Provider amount is derived from the exact store amount so checkout never trusts float math.
+        $providerAmount = $providerCurrency === $storeCurrency
+            ? $storeAmount
+            : $storeAmount->convert($providerCurrency, $conversionRate);
 
         $payment = Payment::create([
             'order_id' => $order->id,
             'provider' => $providerCode,
             'status' => PaymentStatus::Created->value,
-            'amount' => $this->convertAmount((float) $order->amount, $storeCurrency, $providerCurrency, $conversionRate),
+            'amount' => $providerAmount->toDecimal(),
             'currency' => $providerCurrency,
-            'store_amount' => $order->amount,
+            'store_amount' => $storeAmount->toDecimal(),
             'store_currency' => $storeCurrency,
             'conversion_rate' => $conversionRate,
             'checkout_flow' => $this->checkoutFlow($providerCode),
@@ -135,7 +139,10 @@ class PaymentService
     ): Payment {
         return DB::transaction(function () use ($payment, $result, $webhookPayload) {
             $currentStatus = $payment->statusEnum();
+            // Once a payment succeeded, later cancel/fail callbacks must not downgrade it.
             $resolvedStatus = $this->resolveNextStatus($currentStatus, $result->status);
+            /** @var Order $order */
+            $order = $payment->order;
 
             $payment->forceFill([
                 'status' => $resolvedStatus->value,
@@ -149,8 +156,8 @@ class PaymentService
                 'raw_webhook_payload' => $webhookPayload !== [] ? $webhookPayload : $payment->raw_webhook_payload,
             ])->save();
 
-            if ($resolvedStatus === PaymentStatus::Succeeded && $payment->order->statusEnum() !== OrderStatus::Paid) {
-                $payment->order->forceFill([
+            if ($resolvedStatus === PaymentStatus::Succeeded && $order->statusEnum() !== OrderStatus::Paid) {
+                $order->forceFill([
                     'status' => OrderStatus::Paid->value,
                 ])->save();
             }
@@ -173,28 +180,20 @@ class PaymentService
         return (string) config("payments.providers.{$providerCode}.currency", $storeCurrency);
     }
 
-    private function conversionRate(string $providerCode, string $storeCurrency, string $providerCurrency): float
+    private function conversionRate(string $providerCode, string $storeCurrency, string $providerCurrency): string
     {
         if ($providerCurrency === $storeCurrency) {
-            return 1.0;
+            return '1.000000';
         }
 
-        $rate = (float) config("payments.providers.{$providerCode}.exchange_rate", 0);
+        // Config values stay as decimal strings so provider conversion remains deterministic.
+        $rate = Money::normalizeDecimal((string) config("payments.providers.{$providerCode}.exchange_rate", '0'), 6);
 
-        if ($rate <= 0) {
+        if (bccomp($rate, '0', 6) <= 0) {
             throw new \RuntimeException("Payment exchange rate is not configured for provider [{$providerCode}].");
         }
 
         return $rate;
-    }
-
-    private function convertAmount(float $storeAmount, string $storeCurrency, string $providerCurrency, float $conversionRate): float
-    {
-        if ($providerCurrency === $storeCurrency) {
-            return round($storeAmount, 2);
-        }
-
-        return round($storeAmount / $conversionRate, 2);
     }
 
     private function checkoutFlow(string $providerCode): string

@@ -70,6 +70,41 @@ class BasketApiTest extends TestCase
             ->assertJsonPath('data.positions', 0);
     }
 
+    public function test_clear_endpoint_empties_current_basket(): void
+    {
+        $product = $this->createProduct('basket-clear-product');
+        $basket = Basket::create();
+        $basket->products()->attach($product->id, ['quantity' => 2]);
+
+        $response = $this
+            ->withCredentials()
+            ->withCookie('basket_id', (string) $basket->id)
+            ->deleteJson('/api/v1/basket');
+
+        $response->assertOk()
+            ->assertJsonPath('data.positions', 0)
+            ->assertJsonPath('data.amount', 0);
+
+        $this->assertSame(0, $basket->fresh()->products()->count());
+    }
+
+    public function test_show_basket_uses_precise_decimal_totals(): void
+    {
+        $product = $this->createProduct('basket-decimal-product', '10.10');
+        $basket = Basket::create();
+        $basket->products()->attach($product->id, ['quantity' => 3]);
+
+        $response = $this
+            ->withCredentials()
+            ->withCookie('basket_id', (string) $basket->id)
+            ->getJson('/api/v1/basket');
+
+        $response->assertOk()
+            ->assertJsonPath('data.amount', 30.3)
+            ->assertJsonPath('data.items.0.price', 10.1)
+            ->assertJsonPath('data.items.0.cost', 30.3);
+    }
+
     public function test_checkout_endpoint_creates_order_and_clears_basket()
     {
         config()->set('payments.default', 'paypal');
@@ -172,7 +207,85 @@ class BasketApiTest extends TestCase
         $this->assertSame(0, Payment::query()->count());
     }
 
-    private function createProduct(string $slug, int $price = 1200): Product
+    public function test_checkout_returns_422_for_empty_basket(): void
+    {
+        $basket = Basket::create();
+
+        $response = $this
+            ->withCredentials()
+            ->withCookie('basket_id', (string) $basket->id)
+            ->postJson('/api/v1/basket/checkout', [
+                'name' => 'Empty Basket Customer',
+                'email' => 'empty@example.com',
+                'phone' => '+70000000004',
+                'address' => 'Empty street',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Basket is empty.')
+            ->assertJsonValidationErrors(['basket']);
+    }
+
+    public function test_checkout_endpoint_rounds_converted_amount_to_cents_without_float_drift(): void
+    {
+        config()->set('payments.default', 'paypal');
+        config()->set('payments.store_currency', 'KZT');
+        config()->set('payments.providers.paypal.currency', 'USD');
+        config()->set('payments.providers.paypal.exchange_rate', '2');
+        config()->set('payments.providers.paypal.client_id', 'sandbox-client');
+        config()->set('payments.providers.paypal.client_secret', 'sandbox-secret');
+        config()->set('payments.providers.paypal.base_url', 'https://api-m.sandbox.paypal.com');
+
+        Http::fake(function ($request) {
+            $url = $request->url();
+
+            if (str_ends_with($url, '/v1/oauth2/token')) {
+                return Http::response([
+                    'access_token' => 'sandbox-access-token',
+                ]);
+            }
+
+            if (str_ends_with($url, '/v2/checkout/orders')) {
+                return Http::response([
+                    'id' => 'PAYPAL-ORDER-DECIMAL',
+                    'status' => 'CREATED',
+                ], 201);
+            }
+
+            return Http::response([], 500);
+        });
+
+        $product = $this->createProduct('basket-payment-decimal-product', '10.05');
+        $basket = Basket::create();
+        $basket->products()->attach($product->id, ['quantity' => 1]);
+
+        $response = $this
+            ->withCredentials()
+            ->withCookie('basket_id', (string) $basket->id)
+            ->postJson('/api/v1/basket/checkout', [
+                'name' => 'Decimal API Customer',
+                'email' => 'decimal-api@example.com',
+                'phone' => '+70000000003',
+                'address' => 'Decimal API street',
+                'comment' => 'Precise conversion',
+                'payment_method' => 'online_card',
+            ]);
+
+        /** @var Payment $payment */
+        $payment = Payment::query()->firstOrFail();
+
+        // 10.05 / 2 = 5.025, so the provider amount must round to 5.03 instead of drifting to 5.02.
+        $response->assertCreated()
+            ->assertJsonPath('data.order.amount', 10.05)
+            ->assertJsonPath('data.payment.amount', 5.03)
+            ->assertJsonPath('data.payment.store_amount', 10.05)
+            ->assertJsonPath('data.payment.conversion_rate', 2);
+
+        $this->assertSame('5.03', (string) $payment->amount);
+        $this->assertSame('10.05', (string) $payment->store_amount);
+    }
+
+    private function createProduct(string $slug, int|float|string $price = 1200): Product
     {
         $category = Category::factory()->create([
             'parent_id' => 0,

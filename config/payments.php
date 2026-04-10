@@ -18,7 +18,7 @@ return [
     'providers' => [
         'fake' => [
             'currency' => env('FAKE_PAYMENT_CURRENCY', env('STORE_CURRENCY', 'KZT')),
-            'exchange_rate' => (float) env('FAKE_PAYMENT_EXCHANGE_RATE', 1),
+            'exchange_rate' => (string) env('FAKE_PAYMENT_EXCHANGE_RATE', '1'),
             'checkout_flow' => 'hosted_fields',
         ],
         'paypal' => [
@@ -29,7 +29,7 @@ return [
             'merchant_id' => env('PAYPAL_MERCHANT_ID'),
             'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
             'currency' => env('PAYPAL_CURRENCY', env('PAYMENT_CURRENCY', 'USD')),
-            'exchange_rate' => (float) env('PAYPAL_EXCHANGE_RATE', 510),
+            'exchange_rate' => (string) env('PAYPAL_EXCHANGE_RATE', '510'),
             'checkout_flow' => 'hosted_fields',
         ],
     ],

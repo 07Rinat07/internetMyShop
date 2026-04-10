@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
+use App\Support\Money\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -72,5 +73,15 @@ class Payment extends Model
     public function providerEnum(): PaymentProvider
     {
         return PaymentProvider::from((string) $this->provider);
+    }
+
+    public function amountMoney(): Money
+    {
+        return Money::fromDecimal((string) $this->amount, (string) $this->currency);
+    }
+
+    public function storeAmountMoney(): Money
+    {
+        return Money::fromDecimal((string) $this->store_amount, (string) $this->store_currency);
     }
 }

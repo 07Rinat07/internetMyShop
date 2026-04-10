@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -16,11 +17,11 @@ class PaymentResource extends JsonResource
 
         return [
             'id' => $this->public_id,
-            'amount' => (float) $this->amount,
+            'amount' => MoneyFormatter::toNumeric((string) $this->amount),
             'currency' => $this->currency,
-            'store_amount' => (float) $this->store_amount,
+            'store_amount' => MoneyFormatter::toNumeric((string) $this->store_amount),
             'store_currency' => $this->store_currency,
-            'conversion_rate' => (float) $this->conversion_rate,
+            'conversion_rate' => MoneyFormatter::toNumeric((string) $this->conversion_rate, 6),
             'checkout_flow' => $this->checkout_flow,
             'status' => [
                 'code' => $status->value,

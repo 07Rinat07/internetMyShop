@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: internetMyShop API
-  version: 1.5.1
+  version: 1.6.0
   contact:
     name: Rinat Sarmuldin
     email: ura07srr@gmail.com
@@ -21,7 +21,8 @@ info:
     - external API clients authenticate through Laravel Sanctum bearer tokens;
     - the Nuxt browser client reaches this API through its BFF layer;
     - basket endpoints are guest-friendly and rely on cookie-backed basket state;
-    - payment success is confirmed by backend finalization and verified webhooks, not by browser return alone.
+    - payment success is confirmed by backend finalization and verified webhooks, not by browser return alone;
+    - monetary values are calculated server-side with exact decimal handling and may be returned as integers or fractional numbers depending on the value.
 servers:
   - url: /api/v1
     description: Same-host API base for local and Docker Swagger UI
@@ -562,6 +563,34 @@ paths:
                     $ref: '#/components/schemas/Profile'
         '404':
           description: Not found
+    put:
+      tags: [Profiles]
+      summary: Replace profile owned by current user
+      operationId: replaceProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profile
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpsertRequest'
+      responses:
+        '200':
+          description: Updated profile payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Profile'
     patch:
       tags: [Profiles]
       summary: Update profile owned by current user
@@ -837,6 +866,26 @@ components:
               type: boolean
             sale:
               type: boolean
+        brand:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            slug:
+              type: string
+        category:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            slug:
+              type: string
     Basket:
       type: object
       properties:
@@ -846,6 +895,7 @@ components:
           type: integer
         amount:
           type: number
+          description: Exact basket total returned as a JSON number.
         items:
           type: array
           items:
@@ -932,6 +982,7 @@ components:
           type: integer
         amount:
           type: number
+          description: Exact order total returned as a JSON number.
         currency:
           type: string
         status:

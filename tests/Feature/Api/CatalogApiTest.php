@@ -140,4 +140,76 @@ class CatalogApiTest extends TestCase
 
         $this->assertTrue(Str::contains((string) $response->json('data.image'), '/storage/catalog/product/image/product-detail.jpg'));
     }
+
+    public function test_category_endpoint_applies_documented_price_and_flag_filters(): void
+    {
+        $category = Category::factory()->create([
+            'parent_id' => 0,
+            'name' => 'Filtered category',
+            'slug' => 'filtered-category',
+        ]);
+        $brand = Brand::factory()->create([
+            'name' => 'Filtered brand',
+            'slug' => 'filtered-brand',
+        ]);
+
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'Low Sale Product',
+            'slug' => 'low-sale-product',
+            'price' => '1000.00',
+            'sale' => true,
+        ]);
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'High Regular Product',
+            'slug' => 'high-regular-product',
+            'price' => '9000.00',
+            'sale' => false,
+        ]);
+
+        $response = $this->getJson('/api/v1/categories/'.$category->slug.'?price=min&sale=yes');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data.products')
+            ->assertJsonPath('data.products.0.slug', 'low-sale-product');
+    }
+
+    public function test_brand_endpoint_applies_documented_price_and_flag_filters(): void
+    {
+        $category = Category::factory()->create([
+            'parent_id' => 0,
+            'name' => 'Brand filtered category',
+            'slug' => 'brand-filtered-category',
+        ]);
+        $brand = Brand::factory()->create([
+            'name' => 'Filter brand',
+            'slug' => 'filter-brand',
+        ]);
+
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'New Expedition Product',
+            'slug' => 'new-expedition-product',
+            'price' => '8000.00',
+            'new' => true,
+        ]);
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+            'name' => 'Entry Product',
+            'slug' => 'entry-product',
+            'price' => '1500.00',
+            'new' => false,
+        ]);
+
+        $response = $this->getJson('/api/v1/brands/'.$brand->slug.'?price=max&new=yes');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data.products')
+            ->assertJsonPath('data.products.0.slug', 'new-expedition-product');
+    }
 }

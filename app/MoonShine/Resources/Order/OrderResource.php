@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\MoonShine\Resources\Order\Pages\OrderDetailPage;
 use App\MoonShine\Resources\Order\Pages\OrderFormPage;
 use App\MoonShine\Resources\Order\Pages\OrderIndexPage;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Validation\Rule;
 use MoonShine\Contracts\Core\PageContract;
 use MoonShine\Contracts\Core\TypeCasts\DataWrapperContract;
@@ -66,7 +67,7 @@ class OrderResource extends ModelResource
             Text::make(__('admin.fields.customer'), 'name'),
             Text::make(__('admin.fields.email'), 'email'),
             Text::make(__('admin.fields.payment'), formatted: static fn (Order $order) => $order->paymentMethodEnum()->label()),
-            Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸'),
+            Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => MoneyFormatter::format((string) $order->amount).' ₸'),
             Text::make(__('admin.fields.status'), formatted: static fn (Order $order) => $order->statusEnum()->label()),
             Text::make(__('admin.fields.payment_status'), formatted: static fn (Order $order) => $order->payments->sortByDesc('created_at')->first()?->statusEnum()->label() ?? __('admin.common.none')),
         ];
@@ -85,7 +86,7 @@ class OrderResource extends ModelResource
                 Text::make(__('admin.fields.phone'), 'phone')->previewMode(),
                 Text::make(__('admin.fields.address'), 'address')->previewMode(),
                 Text::make(__('admin.fields.payment_method'), formatted: static fn (Order $order) => $order->paymentMethodEnum()->label())->previewMode(),
-                Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸')->previewMode(),
+                Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => MoneyFormatter::format((string) $order->amount).' ₸')->previewMode(),
                 Text::make(__('admin.fields.payment_status'), formatted: static fn (Order $order) => $order->payments->sortByDesc('created_at')->first()?->statusEnum()->label() ?? __('admin.common.none'))->previewMode(),
                 Textarea::make(__('admin.fields.comment'), 'comment')->previewMode(),
             ]),
@@ -104,7 +105,7 @@ class OrderResource extends ModelResource
             Text::make(__('admin.fields.status'), formatted: static fn (Order $order) => $order->statusEnum()->label()),
             Text::make(__('admin.fields.payment_method'), formatted: static fn (Order $order) => $order->paymentMethodEnum()->label()),
             Text::make(__('admin.fields.payment_status'), formatted: static fn (Order $order) => $order->payments->sortByDesc('created_at')->first()?->statusEnum()->label() ?? __('admin.common.none')),
-            Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => number_format((float) $order->amount, 0, '.', ' ') . ' ₸'),
+            Text::make(__('admin.fields.amount'), formatted: static fn (Order $order) => MoneyFormatter::format((string) $order->amount).' ₸'),
             Text::make(__('admin.fields.site_user'), formatted: static fn (Order $order) => $order->user?->name ?? __('admin.common.guest')),
             Textarea::make(__('admin.fields.comment'), 'comment'),
         ];

@@ -9,6 +9,7 @@ use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Support\Money\Money;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -251,7 +252,7 @@ class PayPalProvider implements PaymentProviderDriver
 
     private function formatAmount(mixed $amount): string
     {
-        return number_format((float) $amount, 2, '.', '');
+        return Money::normalizeDecimal((string) $amount, 2);
     }
 
     private function sdkUrl(Payment $payment): string

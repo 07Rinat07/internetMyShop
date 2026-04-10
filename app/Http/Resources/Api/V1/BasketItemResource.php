@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api\V1;
 
 use App\Http\Resources\Api\V1\Concerns\ResolvesCatalogImageUrl;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -18,9 +19,11 @@ class BasketItemResource extends JsonResource
             'product_id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'price' => $this->price,
+            'price' => MoneyFormatter::toNumeric((string) $this->price),
             'quantity' => (int) $this->pivot->quantity,
-            'cost' => $this->price * $this->pivot->quantity,
+            'cost' => MoneyFormatter::toNumeric(
+                $this->priceMoney()->multiply((int) $this->pivot->quantity)->toDecimal()
+            ),
             'image' => $this->catalogImageUrl($this->image, 'product', 'thumb'),
             'flags' => [
                 'new' => (bool) $this->new,
