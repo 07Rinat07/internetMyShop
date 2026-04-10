@@ -32,13 +32,10 @@ Documentation is required for:
 
 Use the following locations:
 
-- `README.md` for setup, run, and high-level project usage;
-- `docs/architecture.md` for architectural direction and boundaries;
-- `docs/openapi.yaml` for API contracts;
-- `docs/hosting-deployment.md` for VPS and hosting deployment instructions;
-- `docs/documentation-maintenance.md` for the documentation update matrix;
-- `docs/development-standards.md` for coding and documentation conventions;
-- `docs/review-checklist.md` for review expectations.
+- `README.md` for setup, run, architecture overview, deployment notes, runtime assumptions, and high-level project usage;
+- `docs/openapi.yaml` for API contracts.
+
+If a change affects documentation and no dedicated file exists, update the relevant section in `README.md` in the same change.
 
 Documentation drift is treated as an incomplete change.
 
